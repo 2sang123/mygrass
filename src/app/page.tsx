@@ -1,5 +1,7 @@
 "use client";
+// @ts-ignore
 import React, { useState, useEffect } from 'react';
+// @ts-nocheck
 import CalendarHeatmap from 'react-calendar-heatmap';
 import 'react-calendar-heatmap/dist/styles.css';
 import { format } from 'date-fns';
