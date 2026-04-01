@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import CalendarHeatmap from 'react-calendar-heatmap';
 import 'react-calendar-heatmap/dist/styles.css';
 import { format, startOfYear, endOfYear } from 'date-fns';
-import { supabase } from '@/lib/supabase'; // 아까 만든 설정 파일
+import { supabase } from '../lib/supabase'; // 아까 만든 설정 파일
 
 type GrassData = { date: string; count: number; note?: string };
 
