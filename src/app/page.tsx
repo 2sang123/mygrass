@@ -32,10 +32,13 @@ const GrassSection = ({ title, data, onAdd, colorClass, icon, isLoading }: any) 
           endDate={endOfYear(new Date())}
           values={data}
           showWeekdayLabels={true}
-          weekdayLabels={['', '월', '', '수', '', '금', '']}
+          weekdayLabels={['일', '월', '화', '수', '목', '금', '토']}
           classForValue={(value) => {
             if (!value || value.count === 0) return 'color-empty';
             return `color-scale-${Math.min(value.count, 4)}`;
+          }}
+          onClick={(value) => {
+            if (value && value.note) setSelectedDate(value);
           }}
           transformDayElement={(element) => React.cloneElement(element as React.ReactElement, { rx: 2, ry: 2 })}
         />
@@ -57,6 +60,8 @@ const GrassSection = ({ title, data, onAdd, colorClass, icon, isLoading }: any) 
 export default function Home() {
   const [records, setRecords] = useState<{p: GrassData[], a: GrassData[], c: GrassData[]}>({ p: [], a: [], c: [] });
   const [isLoading, setIsLoading] = useState(true);
+  // 1. 상태 추가 (팝업에 보여줄 데이터 저장용)
+  const [selectedDate, setSelectedDate] = useState<GrassData | null>(null);
 
   // 1. DB에서 데이터 불러오기
   const fetchRecords = async () => {
@@ -101,7 +106,32 @@ export default function Home() {
       fetchRecords(); // 저장 후 다시 불러와서 화면 갱신
     }
   };
-
+  // 2. 팝업(Modal) UI 컴포넌트 (Home 함수 리턴문 직전에 추가)
+const DetailModal = () => {
+  if (!selectedDate) return null;
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedDate(null)}>
+      <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h3 className="text-sm text-gray-500 font-medium">{selectedDate.date}</h3>
+            <p className="text-xl font-bold text-gray-900">오늘의 성장 기록</p>
+          </div>
+          <button onClick={() => setSelectedDate(null)} className="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+        <div className="bg-gray-50 rounded-xl p-4 min-h-[100px] border border-gray-100 italic text-gray-700">
+          "{selectedDate.note || "작성된 메모가 없습니다."}"
+        </div>
+        <button 
+          onClick={() => setSelectedDate(null)}
+          className="w-full mt-6 py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition-colors"
+        >
+          확인
+        </button>
+      </div>
+    </div>
+  );
+};
   return (
     <main className="min-h-screen bg-[#F8F9FA] p-6 md:p-12 font-sans">
       <div className="max-w-5xl mx-auto">
