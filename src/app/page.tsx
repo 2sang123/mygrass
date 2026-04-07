@@ -120,6 +120,7 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
 
       <style jsx global>{`
         .react-calendar-heatmap {
+          margin-top: 0 !important;
           overflow: visible !important;
         }
         
@@ -131,7 +132,7 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           font-size: 11px !important;
           fill: #64748b !important;
           font-weight: 700 !important;
-          transform: translateY(-8px) !important;
+          transform: translateY(-10px) !important;
         }
 
         .react-calendar-heatmap .color-empty {
