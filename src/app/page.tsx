@@ -56,13 +56,11 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
         </button>
       </div>
       
-      <div className={`relative p-8 bg-white rounded-3xl shadow-sm border border-gray-100 ${colorClass}`}>
+      <div className={`relative p-6 pb-4 bg-white rounded-3xl shadow-sm border border-gray-100 ${colorClass}`}>
         {isLoading ? (
-          <div className="h-[130px] flex items-center justify-center text-gray-400 text-sm font-medium">
-            데이터를 동기화하는 중...
-          </div>
+          <div className="h-[100px] flex items-center justify-center ...">데이터 동기화 중...</div>
         ) : (
-          <div className="heatmap-container">
+          <div className="heatmap-container" style={{ marginBottom: '-15px' }}>
             <CalendarHeatmap
               startDate={startDate}
               endDate={endDate}
@@ -84,7 +82,7 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           </div>
         )}
 
-        <div className="flex justify-end items-center gap-2 mt-8 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+        <div className="flex justify-end items-center gap-2 mt-4 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
           <span>Less</span>
           <div className="flex gap-1.5">
             <div className="w-3 h-3 rounded-[3px] bg-[#f8fafc] border border-gray-100"></div>
@@ -130,12 +128,13 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
 
         /* 5. 컨테이너 패딩 조절로 라벨이 안 잘리게 함 */
         .heatmap-container {
-          padding: 10px 0;
+          margin-top: 0px;    /* 위쪽 여백 제거 */
+          margin-bottom: -10px; /* 아래쪽 여백을 음수로 주어 범례를 위로 끌어올림 */
         }
         
         /* 라이브러리 기본 여백 제거 */
         .react-calendar-heatmap {
-          overflow: visible;
+          height: auto;
         }
       `}</style>
     </div>
