@@ -38,31 +38,58 @@ const calculateStreak = (dates: string[]) => {
   return { current: currentStreak, max: maxStreak };
 };
 
-const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoading }: any) => (
+const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoading }: any) => {
+  // 월별 경계선을 계산하는 로직 (SVG Path 생성)
+  const renderMonthBorders = () => {
+    const startDate = startOfYear(new Date());
+    const endDate = endOfYear(new Date());
+    const paths = [];
+
+    // 각 월의 시작 위치를 계산하여 테두리 경로를 생성
+    for (let month = 1; month <= 11; month++) {
+      const firstDayOfMonth = new Date(new Date().getFullYear(), month, 1);
+      // 일주일은 7일이므로, 시작일로부터 몇 번째 주인지(X), 무슨 요일인지(Y) 계산
+      const diffDays = Math.floor((firstDayOfMonth.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      const weekIndex = Math.floor(diffDays / 7);
+      const dayIndex = diffDays % 7;
+
+      // 잔디 한 칸의 크기를 12(너비)+2(간격) 정도로 계산한 좌표값
+      const x = weekIndex * 14 + 1.5; 
+      const y1 = dayIndex * 14 + 1.5;
+
+      // 계단 모양의 경로 생성 (M: 이동, L: 선 그리기)
+      paths.push(
+        <path
+          key={month}
+          d={`M ${x} 100 L ${x} ${y1} L ${x + 14} ${y1} L ${x + 14} 0`}
+          fill="none"
+          stroke="#e5e7eb" // 연한 회색 테두리
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+      );
+    }
+    return paths;
+  };
+  return (
   <div className="mb-12">
     <div className="flex items-center justify-between mb-3 px-1">
       <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-        <span>{icon}</span> {title}
-      </h2>
-      <button 
-        onClick={onAdd}
-        disabled={isLoading}
-        className="flex items-center justify-center w-8 h-8 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all disabled:opacity-50"
-      >
-        <span className="text-gray-600 font-bold">+</span>
-      </button>
+          <span>{icon}</span> {title}
+        </h2>
+      <button onClick={onAdd} className="..."> + </button>
     </div>
     
     <div className={`relative p-6 bg-white rounded-2xl shadow-sm border border-gray-100 ${colorClass}`}>
-      {/* 월별 수직 가이드라인 레이어 (디자인 예시처럼 구현) */}
-      <div className="absolute inset-x-6 top-6 bottom-16 pointer-events-none flex justify-between opacity-[0.03]">
-        {[...Array(12)].map((_, i) => (
-          <div key={i} className="w-px bg-black h-full" />
-        ))}
-      </div>
+        {/* 실제 날짜 기반 월별 경계선 레이어 */}
+        <div className="absolute inset-0 p-6 pointer-events-none">
+          <svg width="100%" height="100%" viewBox="0 0 800 110" preserveAspectRatio="none" className="opacity-60">
+            {renderMonthBorders()}
+          </svg>
+        </div>
 
       {isLoading ? (
-        <div className="h-[120px] flex items-center justify-center text-gray-400 text-sm">데이터 불러오는 중...</div>
+        <div className="...">불러오는 중...</div>
       ) : (
         <CalendarHeatmap
           startDate={startOfYear(new Date())}
@@ -93,6 +120,7 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
     </div>
   </div>
 );
+};
 
 export default function Home() {
   const [records, setRecords] = useState({ p: [], a: [], c: [] });
