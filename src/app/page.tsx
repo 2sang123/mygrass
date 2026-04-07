@@ -84,25 +84,16 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
                   })
                 }
               />
-
-              <svg
-                className="absolute inset-0 pointer-events-none"
-                viewBox="0 0 100 100"
-                preserveAspectRatio="none"
-              >
-                {['일','월','화','수','목','금','토'].map((day, i) => (
-                  <text
-                    key={day}
-                    x="0.5"
-                    y={28 + i * 8.5}
-                    fontSize="2.5"
-                    fill="#64748b"
-                    fontWeight="700"
-                  >
-                    {day}
-                  </text>
-                ))}
-              </svg>
+            <div className="absolute left-0 top-[36px] flex flex-col gap-[6px] pointer-events-none">
+              {['일','월','화','수','목','금','토'].map((day) => (
+                <div
+                  key={day}
+                  className="text-[11px] font-bold text-slate-500 leading-none"
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
             </div>
           </div>
         )}
