@@ -108,26 +108,44 @@ export default function Home() {
   const [records, setRecords] = useState<{p: GrassData[], a: GrassData[], c: GrassData[]}>({ p: [], a: [], c: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<GrassData | null>(null);
-  const [streaks, setStreaks] = useState({ current: 0, max: 0 }); // Programming 스트릭 상태
+  // 스트릭 상태를 객체로 관리 (종합, P, A, C)
+  const [allStreaks, setAllStreaks] = useState({
+    total: { current: 0, max: 0 },
+    p: { current: 0, max: 0 },
+    a: { current: 0, max: 0 },
+    c: { current: 0, max: 0 }
+  });
 
   const fetchRecords = async () => {
     setIsLoading(true);
     const { data, error } = await supabase.from('grass_records').select('*');
+
     if (data) {
       const newRecords = { p: [], a: [], c: [] };
-      const progDates: string[] = []; // Programming 날짜만 추출
+      const pDates: string[] = [];
+      const aDates: string[] = [];
+      const cDates: string[] = [];
+      const totalDates: string[] = []; // 모든 활동 통합 날짜
 
       data.forEach(item => {
+        totalDates.push(item.date);
         const target = newRecords[item.category as 'p'|'a'|'c'];
-        if (item.category === 'p') progDates.push(item.date); // Programming 날짜 저장
+        if (item.category === 'p') pDates.push(item.date);
+        if (item.category === 'a') aDates.push(item.date);
+        if (item.category === 'c') cDates.push(item.date);
 
         const existing = target.find(d => d.date === item.date);
         if (existing) { existing.count += item.count; } 
         else { target.push({ date: item.date, count: item.count, note: item.note }); }
       });
       setRecords(newRecords);
-      // 스트릭 계산 및 상태 업데이트
-      setStreaks(calculateStreak(progDates));
+      // 각 분야별 + 종합 스트릭 계산
+      setAllStreaks({
+        total: calculateStreak(totalDates),
+        p: calculateStreak(pDates),
+        a: calculateStreak(aDates),
+        c: calculateStreak(cDates)
+      });
     }
     setIsLoading(false);
   };
@@ -162,26 +180,34 @@ export default function Home() {
       </div>
     );
   };
+  const StreakCard = ({ label, stats, colorClass }: any) => (
+    <div className={`flex-1 min-w-[120px] p-4 bg-white rounded-2xl shadow-sm border-b-4 ${colorClass} border-x border-t border-gray-100`}>
+      <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{label}</div>
+      <div className="flex items-baseline gap-1">
+        <span className="text-2xl font-black text-gray-900">{stats.current}</span>
+        <span className="text-xs text-gray-400 font-medium">days</span>
+      </div>
+      <div className="text-[10px] text-gray-400 mt-1">Max: {stats.max}d</div>
+    </div>
+  );
 
   return (
     <main className="min-h-screen bg-[#F8F9FA] p-6 md:p-12 font-sans">
       <div className="max-w-5xl mx-auto">
-        <header className="mb-12 border-b border-gray-100 pb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div>
-            <h1 className="text-2xl font-black text-gray-900 tracking-tight uppercase">My 3-Color Grass</h1>
-            <p className="text-sm text-gray-500">기기 간 동기화 & 상세 기록 보기</p>
+        <header className="mb-12">
+          <div className="flex justify-between items-end mb-8">
+            <div>
+              <h1 className="text-2xl font-black text-gray-900 tracking-tight uppercase">My 3-Color Grass</h1>
+              <p className="text-sm text-gray-500">성장 기록 통합 대시보드</p>
+            </div>
           </div>
-          {/* Programming 연속 달성(Streak) 보드 */}
-          <div className="flex gap-4 p-5 bg-white rounded-2xl shadow-sm border border-gray-100">
-            <div className="text-center">
-              <div className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Current Streak</div>
-              <div className="text-3xl font-black text-blue-600">{streaks.current} <span className="text-lg text-blue-400">days</span></div>
-            </div>
-            <div className="w-px bg-gray-100"></div>
-            <div className="text-center">
-              <div className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Max Streak</div>
-              <div className="text-3xl font-black text-gray-900">{streaks.max} <span className="text-lg text-gray-500">days</span></div>
-            </div>
+
+          {/* 스트릭 대시보드 그리드 */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StreakCard label="🔥 Total" stats={allStreaks.total} colorClass="border-purple-500" />
+            <StreakCard label="💻 Prog" stats={allStreaks.p} colorClass="border-blue-500" />
+            <StreakCard label="🎨 Art" stats={allStreaks.a} colorClass="border-orange-500" />
+            <StreakCard label="🚀 Career" stats={allStreaks.c} colorClass="border-green-500" />
           </div>
         </header>
         
