@@ -56,19 +56,24 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
         </button>
       </div>
       
-      <div className={`relative p-6 pb-4 bg-white rounded-3xl shadow-sm border border-gray-100 ${colorClass}`}>
+      {/* pt-10으로 상단 여백을 더 확보하여 라벨이 절대 안 잘리게 함 */}
+      <div className={`relative p-6 pt-10 pb-4 bg-white rounded-3xl shadow-sm border border-gray-100 ${colorClass}`}>
         {isLoading ? (
-          <div className="h-[100px] flex items-center justify-center ...">데이터 동기화 중...</div>
+          <div className="h-[100px] flex items-center justify-center text-gray-400 text-sm font-medium">
+            데이터 동기화 중...
+          </div>
         ) : (
-          <div className="heatmap-container" style={{ marginBottom: '-15px' }}>
+          <div className="heatmap-container">
             <CalendarHeatmap
               startDate={startDate}
               endDate={endDate}
               values={data}
               showWeekdayLabels={true}
-              weekdayLabels={['', '월', '', '수', '', '금', '']}
+              /* 요일을 전부 표시합니다. 첫 글자만 따서 깔끔하게 보여줍니다. */
+              weekdayLabels={['일', '월', '화', '수', '목', '금', '토']}
               classForValue={(value) => {
                 if (!value || value.count === 0) return 'color-empty';
+                // count가 1, 2, 3, 4 이상일 때 각각 다른 클래스 부여
                 return `color-scale-${Math.min(value.count, 4)}`;
               }}
               onClick={(value) => {
@@ -82,12 +87,13 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           </div>
         )}
 
-        <div className="flex justify-end items-center gap-2 mt-4 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+        <div className="flex justify-end items-center gap-2 mt-2 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
           <span>Less</span>
           <div className="flex gap-1.5">
             <div className="w-3 h-3 rounded-[3px] bg-[#f8fafc] border border-gray-100"></div>
-            <div className="w-3 h-3 rounded-[3px] opacity-30 color-box"></div>
-            <div className="w-3 h-3 rounded-[3px] opacity-60 color-box"></div>
+            <div className="w-3 h-3 rounded-[3px] opacity-25 color-box"></div>
+            <div className="w-3 h-3 rounded-[3px] opacity-50 color-box"></div>
+            <div className="w-3 h-3 rounded-[3px] opacity-75 color-box"></div>
             <div className="w-3 h-3 rounded-[3px] opacity-100 color-box"></div>
           </div>
           <span>More</span>
@@ -95,48 +101,58 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
       </div>
 
       <style jsx global>{`
-        /* 1. 월 라벨 위치 및 스타일 강제 보정 */
+        .react-calendar-heatmap {
+          overflow: visible !important;
+        }
+        
+        .heatmap-container {
+          margin-bottom: -10px;
+          overflow: visible !important;
+        }
+
         .react-calendar-heatmap .react-calendar-heatmap-month-label {
           font-size: 11px !important;
           fill: #64748b !important;
           font-weight: 700 !important;
-          /* 라벨을 위쪽으로 살짝 올림 */
-          transform: translateY(-5px);
+          transform: translateY(-8px) !important;
         }
 
-        /* 2. 요일 라벨 스타일 */
+        /* 요일 라벨 크기를 줄여서 7개가 다 들어가도 안 겹치게 함 */
         .react-calendar-heatmap .react-calendar-heatmap-weekday-label {
-          font-size: 10px !important;
+          font-size: 8px !important;
           fill: #cbd5e1 !important;
-          font-weight: 600 !important;
+          font-weight: 700 !important;
         }
 
-        /* 3. 빈 칸(그리드) 색상 고정 */
         .react-calendar-heatmap .color-empty {
           fill: #f8fafc !important;
         }
 
-        /* 4. 호버 효과 */
-        .react-calendar-heatmap rect {
-          cursor: pointer;
-          transition: fill 0.2s ease, stroke 0.2s;
-        }
+        /* 단계별 색상 정의 (검은색 방지) */
+        /* Programming (Blue) */
+        .grass-blue .color-scale-1 { fill: #dbeafe !important; }
+        .grass-blue .color-scale-2 { fill: #93c5fd !important; }
+        .grass-blue .color-scale-3 { fill: #3b82f6 !important; }
+        .grass-blue .color-scale-4 { fill: #1e40af !important; }
+        .grass-blue .color-box { background-color: #1e40af; }
+
+        /* Art (Orange) */
+        .grass-orange .color-scale-1 { fill: #ffedd5 !important; }
+        .grass-orange .color-scale-2 { fill: #fdba74 !important; }
+        .grass-orange .color-scale-3 { fill: #f97316 !important; }
+        .grass-orange .color-scale-4 { fill: #9a3412 !important; }
+        .grass-orange .color-box { background-color: #9a3412; }
+
+        /* Career (Green) */
+        .grass-green .color-scale-1 { fill: #dcfce7 !important; }
+        .grass-green .color-scale-2 { fill: #86efac !important; }
+        .grass-green .color-scale-3 { fill: #22c55e !important; }
+        .grass-green .color-scale-4 { fill: #166534 !important; }
+        .grass-green .color-box { background-color: #166534; }
+
         .react-calendar-heatmap rect:hover {
           stroke: #94a3b8 !important;
           stroke-width: 1px !important;
-        }
-
-        /* 5. 컨테이너 패딩 조절로 라벨이 안 잘리게 함 */
-        .heatmap-container {
-          margin-top: 3px;    /* 위쪽 여백*/
-          margin-bottom: -10px; /* 아래쪽 여백을 음수로 주어 범례를 위로 끌어올림 */
-          overflow: visible !important;
-        }
-        
-        /* 라이브러리 기본 여백 제거 */
-        .react-calendar-heatmap {
-          height: auto;
-          overflow: visible !important;
         }
       `}</style>
     </div>
