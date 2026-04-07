@@ -132,7 +132,7 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
         .react-calendar-heatmap-weekday-label:nth-of-type(4) { y: 51.5% !important; } /* 수 */
         .react-calendar-heatmap-weekday-label:nth-of-type(5) { y: 66% !important; }   /* 목 */
         .react-calendar-heatmap-weekday-label:nth-of-type(6) { y: 80.5% !important; } /* 금 */
-        .react-calendar-heatmap-weekday-label:nth-of-type(7) { y: 95% !important; }   /*
+        .react-calendar-heatmap-weekday-label:nth-of-type(7) { y: 95% !important; }   
 
         .react-calendar-heatmap .color-empty {
           fill: #f8fafc !important;
