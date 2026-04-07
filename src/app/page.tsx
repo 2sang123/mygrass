@@ -65,30 +65,13 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           /* flex를 사용하여 요일 라벨과 잔디밭을 가로로 배치 */
           <div className="heatmap-container flex items-start gap-2">
             
-            {/* 직접 만든 요일 라벨 영역 */}
-            <div 
-                className="flex flex-col text-[9px] font-bold text-slate-400 select-none"
-                style={{ 
-                  marginTop: '13px',    /* 월 라벨(Jan 등) 높이만큼 내려서 첫 칸에 맞춤 */
-                  gap: '4.5px',         /* 잔디 칸 사이의 간격과 맞추기 위한 미세 조정 */
-                  lineHeight: '8.5px'     /* 글자 자체의 높이 제어 */
-                }}
-              >
-              <span>일</span>
-              <span>월</span>
-              <span>화</span>
-              <span>수</span>
-              <span>목</span>
-              <span>금</span>
-              <span>토</span>
-            </div>
-
             <div className="flex-1 overflow-visible">
               <CalendarHeatmap
                 startDate={startDate}
                 endDate={endDate}
                 values={data}
-                showWeekdayLabels={false} // 라이브러리 요일은 끕니다.
+                showWeekdayLabels={true} // 라이브러리 요일은 켭니다.
+                weekdayLabels={['일', '월', '화', '수', '목', '금', '토']}
                 classForValue={(value) => {
                   if (!value || value.count === 0) return 'color-empty';
                   return `color-scale-${Math.min(value.count, 4)}`;
@@ -120,7 +103,8 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
 
       <style jsx global>{`
         .react-calendar-heatmap {
-          margin-top: 0 !important;
+          width: 100%;
+          height: auto;
           overflow: visible !important;
         }
         
@@ -134,6 +118,21 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           font-weight: 700 !important;
           transform: translateY(-10px) !important;
         }
+        .react-calendar-heatmap .react-calendar-heatmap-weekday-label {
+          font-size: 8px !important;
+          fill: #64748b !important;
+          font-weight: 700 !important;
+          display: block !important; /* 숨겨진 요일들 강제로 깨우기 */
+        }
+
+        /* 2. SVG 내부 Y 좌표를 %로 강제 고정 (7줄의 잔디 위치와 1:1 매칭) */
+        .react-calendar-heatmap-weekday-label:nth-of-type(1) { y: 8% !important; }   /* 일 */
+        .react-calendar-heatmap-weekday-label:nth-of-type(2) { y: 22.5% !important; } /* 월 */
+        .react-calendar-heatmap-weekday-label:nth-of-type(3) { y: 37% !important; }   /* 화 */
+        .react-calendar-heatmap-weekday-label:nth-of-type(4) { y: 51.5% !important; } /* 수 */
+        .react-calendar-heatmap-weekday-label:nth-of-type(5) { y: 66% !important; }   /* 목 */
+        .react-calendar-heatmap-weekday-label:nth-of-type(6) { y: 80.5% !important; } /* 금 */
+        .react-calendar-heatmap-weekday-label:nth-of-type(7) { y: 95% !important; }   /*
 
         .react-calendar-heatmap .color-empty {
           fill: #f8fafc !important;
