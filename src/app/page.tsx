@@ -120,7 +120,7 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
         /* 요일 라벨 전체를 보이게 하고 위치를 미세 조정합니다. */
         .react-calendar-heatmap .react-calendar-heatmap-weekday-label {
           font-size: 8px !important;
-          fill: #cbd5e1 !important;
+          fill: #375066 !important;
           font-weight: 700 !important;
           /* 기본적으로 숨겨져 있을 수 있는 라벨들을 보이게 설정 */
           display: block !important; 
