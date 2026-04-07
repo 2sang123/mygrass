@@ -39,63 +39,102 @@ const calculateStreak = (dates: string[]) => {
 };
 
 const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoading }: any) => {
+  // 배경을 꽉 채우기 위한 1년치 빈 데이터 생성 (배경 그리드용)
+  const startDate = startOfYear(new Date());
+  const endDate = endOfYear(new Date());
+  
   return (
     <div className="mb-12">
-      <div className="flex items-center justify-between mb-3 px-1">
+      <div className="flex items-center justify-between mb-4 px-1">
         <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
           <span>{icon}</span> {title}
         </h2>
-        <button onClick={onAdd} className="..."> + </button>
+        <button 
+          onClick={onAdd}
+          className="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all"
+        >
+          <span className="text-gray-400 font-bold">+</span>
+        </button>
       </div>
       
-      <div className={`relative p-6 bg-white rounded-2xl shadow-sm border border-gray-100 ${colorClass}`}>
+      <div className={`relative p-8 bg-white rounded-3xl shadow-sm border border-gray-100 ${colorClass}`}>
         {isLoading ? (
-          <div className="...">불러오는 중...</div>
+          <div className="h-[130px] flex items-center justify-center text-gray-400 text-sm font-medium">
+            데이터를 동기화하는 중...
+          </div>
         ) : (
-          <CalendarHeatmap
-            startDate={startOfYear(new Date())}
-            endDate={endOfYear(new Date())}
-            values={data}
-            showWeekdayLabels={true}
-            weekdayLabels={['', '월', '', '수', '', '금', '']}
-            classForValue={(value) => {
-              if (!value || value.count === 0) return 'color-empty';
-              return `color-scale-${Math.min(value.count, 4)}`;
-            }}
-            // [핵심] 각 날짜 요소에 '월' 정보를 클래스로 주입합니다.
-            transformDayElement={(element, value) => {
-              const date = value?.date ? new Date(value.date) : null;
-              // 1일인 경우 특별한 클래스를 추가합니다.
-              const isFirstDay = date && date.getDate() === 1;
-              const monthClass = date ? `m-${date.getMonth() + 1}` : '';
-              const firstDayClass = isFirstDay ? 'first-day' : '';
-              
-              return React.cloneElement(element as React.ReactElement, { 
-                rx: 2, 
-                ry: 2,
-                className: `${element.props.className} ${monthClass} ${firstDayClass}`
-              });
-            }}
-            onClick={(value) => {
-              if (value && value.note) onSelect(value);
-            }}
-          />
+          <div className="heatmap-container">
+            <CalendarHeatmap
+              startDate={startDate}
+              endDate={endDate}
+              values={data}
+              showWeekdayLabels={true}
+              weekdayLabels={['', '월', '', '수', '', '금', '']}
+              classForValue={(value) => {
+                if (!value || value.count === 0) return 'color-empty';
+                return `color-scale-${Math.min(value.count, 4)}`;
+              }}
+              onClick={(value) => {
+                if (value && value.note) onSelect(value);
+              }}
+              transformDayElement={(element) => React.cloneElement(element as React.ReactElement, { 
+                rx: 2.5, 
+                ry: 2.5 
+              })}
+            />
+          </div>
         )}
+
+        {/* 하단 범례 */}
+        <div className="flex justify-end items-center gap-2 mt-6 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+          <span>Less</span>
+          <div className="flex gap-1.5">
+            <div className="w-3 h-3 rounded-[3px] bg-gray-50 border border-gray-100"></div>
+            <div className="w-3 h-3 rounded-[3px] opacity-30 color-box"></div>
+            <div className="w-3 h-3 rounded-[3px] opacity-60 color-box"></div>
+            <div className="w-3 h-3 rounded-[3px] opacity-100 color-box"></div>
+          </div>
+          <span>More</span>
+        </div>
       </div>
 
-      {/* 월별 경계선을 위한 스타일 */}
       <style jsx global>{`
-        /* 1일인 잔디의 왼쪽과 상단에 테두리를 그려서 구역을 나눕니다. */
-        .react-calendar-heatmap rect.first-day {
-          stroke: #e2e8f0 !important; /* 슬레이트 200 회색 */
-          stroke-width: 1px !important;
+        /* 1. 월 라벨 디자인 수정 */
+        .react-calendar-heatmap .react-calendar-heatmap-month-label {
+          font-size: 11px;
+          fill: #64748b; /* 슬레이트 500 */
+          font-weight: 700;
+          dominant-baseline: hanging;
         }
 
-        /* 1월은 시작점이므로 테두리 제외, 2월~12월 1일에만 경계선 적용 */
-        .react-calendar-heatmap rect.first-day:not(.m-1) {
-          /* 이 부분은 라이브러리 구조상 CSS만으로는 계단식 연결이 어렵습니다. 
-             가장 깔끔한 대안은 월이 바뀔 때 '색상'의 톤을 미세하게 조절하거나 
-             아래 SVG 보정 방식을 다시 사용하는 것입니다. */
+        /* 2. 요일 라벨 디자인 수정 */
+        .react-calendar-heatmap .react-calendar-heatmap-weekday-label {
+          font-size: 10px;
+          fill: #cbd5e1; /* 슬레이트 300 */
+          font-weight: 600;
+        }
+
+        /* 3. 배경 그리드 및 잔디 스타일 */
+        .react-calendar-heatmap rect {
+          stroke-width: 0;
+          transition: fill 0.2s ease;
+        }
+
+        /* 데이터가 없는 빈 칸(배경 그리드) */
+        .react-calendar-heatmap .color-empty {
+          fill: #f8fafc; /* 아주 연한 푸른빛 회색 */
+        }
+
+        /* 호버 시 은은한 강조 */
+        .react-calendar-heatmap rect:hover {
+          fill-opacity: 0.8;
+          stroke: #94a3b8;
+          stroke-width: 1px;
+        }
+
+        /* 4. 컨테이너 여백 조정 */
+        .heatmap-container {
+          margin-top: 10px;
         }
       `}</style>
     </div>
