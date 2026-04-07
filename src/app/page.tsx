@@ -62,19 +62,21 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
             데이터 동기화 중...
           </div>
         ) : (
-          /* flex를 사용하여 요일 라벨과 잔디밭을 가로로 배치 */
-          <div className="heatmap-container relative">
-            {/* 요일 라벨을 SVG로 직접 그려서 잔디밭 옆에 붙입니다. (반응형 대응) */}
-            <div className="absolute left-[-25px] top-[12px] w-full h-full pointer-events-none">
-              <svg viewBox="0 0 800 100" className="w-full h-auto overflow-visible">
+          <div className="heatmap-container relative ml-6"> {/* ml-6으로 요일이 들어갈 왼쪽 공간 확보 */}
+            
+            {/* [핵심] 요일 라벨: 라이브러리 SVG와 동일한 비율로 움직이도록 absolute 설정 */}
+            <div className="absolute left-[-24px] top-0 w-full h-full pointer-events-none overflow-visible">
+              <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
                 {['일', '월', '화', '수', '목', '금', '토'].map((day, i) => (
                   <text
                     key={day}
                     x="0"
-                    y={13 + i * 13.1} // 잔디 칸 높이(약 13px)에 맞춰 정렬
+                    /* 10.5%는 첫 번째 칸 위치, 14.3%는 한 칸의 수직 비율입니다. */
+                    y={`${10.5 + (i * 14.3)}%`} 
                     fontSize="9"
-                    fontWeight="700"
+                    fontWeight="800"
                     fill="#94a3b8"
+                    dominantBaseline="middle"
                     className="select-none"
                   >
                     {day}
