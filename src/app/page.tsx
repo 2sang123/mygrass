@@ -126,6 +126,16 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           display: block !important; 
         }
 
+        /* 라이브러리 구조상 7개가 다 나타나지 않을 경우, 
+          SVG 내부의 text 요소들을 강제로 재배치합니다. */
+        .react-calendar-heatmap-weekday-label:nth-child(1) { translateY: 8px; }  /* 일 */
+        .react-calendar-heatmap-weekday-label:nth-child(2) { translateY: 21px; } /* 월 */
+        .react-calendar-heatmap-weekday-label:nth-child(3) { translateY: 34px; } /* 화 */
+        .react-calendar-heatmap-weekday-label:nth-child(4) { translateY: 47px; } /* 수 */
+        .react-calendar-heatmap-weekday-label:nth-child(5) { translateY: 60px; } /* 목 */
+        .react-calendar-heatmap-weekday-label:nth-child(6) { translateY: 73px; } /* 금 */
+        .react-calendar-heatmap-weekday-label:nth-child(7) { translateY: 86px; } /* 토 */
+
         .react-calendar-heatmap .color-empty {
           fill: #f8fafc !important;
         }
