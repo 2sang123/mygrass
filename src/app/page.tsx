@@ -84,11 +84,11 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
                   })
                 }
               />
-            <div className="absolute left-0 top-[36px] flex flex-col gap-[6px] pointer-events-none">
+            <div className="absolute left-0 top-[22%] h-[58%] flex flex-col justify-between pointer-events-none">
               {['일','월','화','수','목','금','토'].map((day) => (
                 <div
                   key={day}
-                  className="text-[11px] font-bold text-slate-500 leading-none"
+                  className="text-[10px] md:text-[11px] font-bold text-slate-500 leading-none"
                 >
                   {day}
                 </div>
