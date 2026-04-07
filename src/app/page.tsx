@@ -39,37 +39,6 @@ const calculateStreak = (dates: string[]) => {
 };
 
 const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoading }: any) => {
-  const renderMonthBorders = () => {
-    const startDate = startOfYear(new Date());
-    const paths = [];
-
-    // 2월부터 12월까지의 시작 경계선을 그립니다.
-    for (let month = 1; month <= 11; month++) {
-      const firstDayOfMonth = new Date(new Date().getFullYear(), month, 1);
-      const diffDays = Math.floor((firstDayOfMonth.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-      
-      const weekIndex = Math.floor(diffDays / 7);
-      const dayIndex = diffDays % 7;
-
-      // 라이브러리의 기본 좌표계인 10(칸)+3(간격) = 13 단위를 기준으로 계산
-      const x = weekIndex * 13; 
-      const y = dayIndex * 13;
-
-      // 계단 모양 경로 (M: 이동, V: 수직선, H: 수평선)
-      // 해당 주의 시작부터 1일 전까지는 왼쪽, 1일부터는 아래로 꺾임
-      paths.push(
-        <path
-          key={month}
-          d={`M ${x} 0 V ${y} H ${x + 13} V 91`} // 91은 7일 * 13단위
-          fill="none"
-          stroke="#e2e8f0" // 슬레이트 200 색상
-          strokeWidth="1"
-        />
-      );
-    }
-    return paths;
-  };
-
   return (
     <div className="mb-12">
       <div className="flex items-center justify-between mb-3 px-1">
@@ -80,19 +49,6 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
       </div>
       
       <div className={`relative p-6 bg-white rounded-2xl shadow-sm border border-gray-100 ${colorClass}`}>
-        {/* 가이드라인 레이어: viewBox를 라이브러리 표준인 1000 100 정도로 잡고 미세 조정 */}
-        <div className="absolute inset-0 pt-[58px] pl-[68px] pr-[30px] pointer-events-none">
-          <svg 
-            width="100%" 
-            height="91" 
-            viewBox="0 0 715 91" 
-            preserveAspectRatio="none" 
-            className="opacity-100"
-          >
-            {renderMonthBorders()}
-          </svg>
-        </div>
-
         {isLoading ? (
           <div className="...">불러오는 중...</div>
         ) : (
@@ -106,13 +62,42 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
               if (!value || value.count === 0) return 'color-empty';
               return `color-scale-${Math.min(value.count, 4)}`;
             }}
+            // [핵심] 각 날짜 요소에 '월' 정보를 클래스로 주입합니다.
+            transformDayElement={(element, value) => {
+              const date = value?.date ? new Date(value.date) : null;
+              // 1일인 경우 특별한 클래스를 추가합니다.
+              const isFirstDay = date && date.getDate() === 1;
+              const monthClass = date ? `m-${date.getMonth() + 1}` : '';
+              const firstDayClass = isFirstDay ? 'first-day' : '';
+              
+              return React.cloneElement(element as React.ReactElement, { 
+                rx: 2, 
+                ry: 2,
+                className: `${element.props.className} ${monthClass} ${firstDayClass}`
+              });
+            }}
             onClick={(value) => {
               if (value && value.note) onSelect(value);
             }}
-            transformDayElement={(element) => React.cloneElement(element as React.ReactElement, { rx: 2, ry: 2 })}
           />
         )}
       </div>
+
+      {/* 월별 경계선을 위한 스타일 */}
+      <style jsx global>{`
+        /* 1일인 잔디의 왼쪽과 상단에 테두리를 그려서 구역을 나눕니다. */
+        .react-calendar-heatmap rect.first-day {
+          stroke: #e2e8f0 !important; /* 슬레이트 200 회색 */
+          stroke-width: 1px !important;
+        }
+
+        /* 1월은 시작점이므로 테두리 제외, 2월~12월 1일에만 경계선 적용 */
+        .react-calendar-heatmap rect.first-day:not(.m-1) {
+          /* 이 부분은 라이브러리 구조상 CSS만으로는 계단식 연결이 어렵습니다. 
+             가장 깔끔한 대안은 월이 바뀔 때 '색상'의 톤을 미세하게 조절하거나 
+             아래 SVG 보정 방식을 다시 사용하는 것입니다. */
+        }
+      `}</style>
     </div>
   );
 };
