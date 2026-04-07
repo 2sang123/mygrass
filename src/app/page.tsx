@@ -63,8 +63,27 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           </div>
         ) : (
           /* flex를 사용하여 요일 라벨과 잔디밭을 가로로 배치 */
-          <div className="heatmap-container flex items-start gap-2">
-            <div className="relative flex-1 overflow-visible">
+          <div className="heatmap-container relative">
+            {/* 요일 라벨을 SVG로 직접 그려서 잔디밭 옆에 붙입니다. (반응형 대응) */}
+            <div className="absolute left-[-25px] top-[12px] w-full h-full pointer-events-none">
+              <svg viewBox="0 0 800 100" className="w-full h-auto overflow-visible">
+                {['일', '월', '화', '수', '목', '금', '토'].map((day, i) => (
+                  <text
+                    key={day}
+                    x="0"
+                    y={13 + i * 13.1} // 잔디 칸 높이(약 13px)에 맞춰 정렬
+                    fontSize="9"
+                    fontWeight="700"
+                    fill="#94a3b8"
+                    className="select-none"
+                  >
+                    {day}
+                  </text>
+                ))}
+              </svg>
+            </div>
+
+            <div className="ml-4">
               <CalendarHeatmap
                 startDate={startDate}
                 endDate={endDate}
@@ -84,16 +103,6 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
                   })
                 }
               />
-            <div className="absolute left-0 top-[22%] h-[58%] flex flex-col justify-between pointer-events-none">
-              {['일','월','화','수','목','금','토'].map((day) => (
-                <div
-                  key={day}
-                  className="text-[10px] md:text-[11px] font-bold text-slate-500 leading-none"
-                >
-                  {day}
-                </div>
-              ))}
-            </div>
             </div>
           </div>
         )}
