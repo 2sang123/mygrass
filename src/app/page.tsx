@@ -64,14 +64,12 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
         ) : (
           /* flex를 사용하여 요일 라벨과 잔디밭을 가로로 배치 */
           <div className="heatmap-container flex items-start gap-2">
-            
-            <div className="flex-1 overflow-visible">
+            <div className="relative flex-1 overflow-visible">
               <CalendarHeatmap
                 startDate={startDate}
                 endDate={endDate}
                 values={data}
-                showWeekdayLabels={false} // 라이브러리 요일은 켭니다.
-                weekdayLabels={['일', '월', '화', '수', '목', '금', '토']}
+                showWeekdayLabels={false}
                 classForValue={(value) => {
                   if (!value || value.count === 0) return 'color-empty';
                   return `color-scale-${Math.min(value.count, 4)}`;
@@ -79,11 +77,14 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
                 onClick={(value) => {
                   if (value && value.note) onSelect(value);
                 }}
-                transformDayElement={(element) => React.cloneElement(element as React.ReactElement, { 
-                  rx: 2.5, 
-                  ry: 2.5 
-                })}
+                transformDayElement={(element) =>
+                  React.cloneElement(element as React.ReactElement, {
+                    rx: 2.5,
+                    ry: 2.5
+                  })
+                }
               />
+
               <svg
                 className="absolute inset-0 pointer-events-none"
                 viewBox="0 0 100 100"
@@ -92,9 +93,9 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
                 {['일','월','화','수','목','금','토'].map((day, i) => (
                   <text
                     key={day}
-                    x="1"
-                    y={12 + i * 12.5}
-                    fontSize="3"
+                    x="0.5"
+                    y={28 + i * 8.5}
+                    fontSize="2.5"
                     fill="#64748b"
                     fontWeight="700"
                   >
@@ -136,23 +137,6 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           font-weight: 700 !important;
           transform: translateY(-10px) !important;
         }
-        .react-calendar-heatmap .react-calendar-heatmap-weekday-label {
-          font-size: 8px !important;
-          fill: #64748b !important;
-          font-weight: 700 !important;
-          display: block !important; /* 숨겨진 요일들 강제로 깨우기 */
-        }
-        .react-calendar-heatmap .react-calendar-heatmap-weekday-label:nth-child(n) {
-        display: block !important;
-        }
-        /* 2. SVG 내부 Y 좌표를 %로 강제 고정 (7줄의 잔디 위치와 1:1 매칭) */
-        .react-calendar-heatmap-weekday-label:nth-of-type(0) { y: 8% !important; }   /* 일 */
-        .react-calendar-heatmap-weekday-label:nth-of-type(2) { y: 22.5% !important; } /* 월 */
-        .react-calendar-heatmap-weekday-label:nth-of-type(4) { y: 37% !important; }   /* 화 */
-        .react-calendar-heatmap-weekday-label:nth-of-type(6) { y: 51.5% !important; } /* 수 */
-        .react-calendar-heatmap-weekday-label:nth-of-type(8) { y: 66% !important; }   /* 목 */
-        .react-calendar-heatmap-weekday-label:nth-of-type(10) { y: 80.5% !important; } /* 금 */
-        .react-calendar-heatmap-weekday-label:nth-of-type(12) { y: 95% !important; }   
 
         .react-calendar-heatmap .color-empty {
           fill: #f8fafc !important;
