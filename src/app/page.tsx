@@ -70,7 +70,7 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
                 startDate={startDate}
                 endDate={endDate}
                 values={data}
-                showWeekdayLabels={true} // 라이브러리 요일은 켭니다.
+                showWeekdayLabels={false} // 라이브러리 요일은 켭니다.
                 weekdayLabels={['일', '월', '화', '수', '목', '금', '토']}
                 classForValue={(value) => {
                   if (!value || value.count === 0) return 'color-empty';
@@ -84,6 +84,24 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
                   ry: 2.5 
                 })}
               />
+              <svg
+                className="absolute inset-0 pointer-events-none"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+              >
+                {['일','월','화','수','목','금','토'].map((day, i) => (
+                  <text
+                    key={day}
+                    x="1"
+                    y={12 + i * 12.5}
+                    fontSize="3"
+                    fill="#64748b"
+                    fontWeight="700"
+                  >
+                    {day}
+                  </text>
+                ))}
+              </svg>
             </div>
           </div>
         )}
