@@ -56,38 +56,49 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
         </button>
       </div>
       
-      {/* pt-10으로 상단 여백을 더 확보하여 라벨이 절대 안 잘리게 함 */}
       <div className={`relative p-6 pt-10 pb-4 bg-white rounded-3xl shadow-sm border border-gray-100 ${colorClass}`}>
         {isLoading ? (
           <div className="h-[100px] flex items-center justify-center text-gray-400 text-sm font-medium">
             데이터 동기화 중...
           </div>
         ) : (
-          <div className="heatmap-container">
-            <CalendarHeatmap
-              startDate={startDate}
-              endDate={endDate}
-              values={data}
-              showWeekdayLabels={true}
-              /* 요일을 전부 표시합니다. 첫 글자만 따서 깔끔하게 보여줍니다. */
-              weekdayLabels={['일', '월', '화', '수', '목', '금', '토']}
-              classForValue={(value) => {
-                if (!value || value.count === 0) return 'color-empty';
-                // count가 1, 2, 3, 4 이상일 때 각각 다른 클래스 부여
-                return `color-scale-${Math.min(value.count, 4)}`;
-              }}
-              onClick={(value) => {
-                if (value && value.note) onSelect(value);
-              }}
-              transformDayElement={(element) => React.cloneElement(element as React.ReactElement, { 
-                rx: 2.5, 
-                ry: 2.5 
-              })}
-            />
+          /* flex를 사용하여 요일 라벨과 잔디밭을 가로로 배치 */
+          <div className="heatmap-container flex items-start gap-3">
+            
+            {/* 직접 만든 요일 라벨 영역 */}
+            <div className="flex flex-col justify-between h-[91px] text-[9px] font-bold text-slate-400 pt-[12px] pb-[2px] leading-none select-none">
+              <span>일</span>
+              <span>월</span>
+              <span>화</span>
+              <span>수</span>
+              <span>목</span>
+              <span>금</span>
+              <span>토</span>
+            </div>
+
+            <div className="flex-1 overflow-visible">
+              <CalendarHeatmap
+                startDate={startDate}
+                endDate={endDate}
+                values={data}
+                showWeekdayLabels={false} // 라이브러리 요일은 끕니다.
+                classForValue={(value) => {
+                  if (!value || value.count === 0) return 'color-empty';
+                  return `color-scale-${Math.min(value.count, 4)}`;
+                }}
+                onClick={(value) => {
+                  if (value && value.note) onSelect(value);
+                }}
+                transformDayElement={(element) => React.cloneElement(element as React.ReactElement, { 
+                  rx: 2.5, 
+                  ry: 2.5 
+                })}
+              />
+            </div>
           </div>
         )}
 
-        <div className="flex justify-end items-center gap-2 mt-2 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+        <div className="flex justify-end items-center gap-2 mt-4 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
           <span>Less</span>
           <div className="flex gap-1.5">
             <div className="w-3 h-3 rounded-[3px] bg-[#f8fafc] border border-gray-100"></div>
@@ -106,8 +117,7 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
         }
         
         .heatmap-container {
-          margin-bottom: -10px;
-          overflow: visible !important;
+          margin-bottom: -15px; /* 하단 여백 조절 */
         }
 
         .react-calendar-heatmap .react-calendar-heatmap-month-label {
@@ -117,46 +127,23 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           transform: translateY(-8px) !important;
         }
 
-        /* 1. 모든 요일 라벨의 숨김 해제 및 스타일 */
-        .react-calendar-heatmap .react-calendar-heatmap-weekday-label {
-          font-size: 8px !important;
-          fill: #64748b !important;
-          font-weight: 700 !important;
-          display: block !important; /* 라이브러리의 display: none을 무력화 */
-          visibility: visible !important;
-          opacity: 1 !important;
-        }
-
-        /* 2. 요일 라벨의 위치를 좌표(y)가 아닌 '순서'에 따라 강제로 재배치 */
-        /* 라이브러리가 0, 2, 4만 보여주려고 해도, 모든 text 요소를 세로로 나열합니다. */
-        .react-calendar-heatmap-weekday-label:nth-of-type(1) { transform: translateY(12px) !important; }
-        .react-calendar-heatmap-weekday-label:nth-of-type(2) { transform: translateY(25px) !important; }
-        .react-calendar-heatmap-weekday-label:nth-of-type(3) { transform: translateY(38px) !important; }
-        .react-calendar-heatmap-weekday-label:nth-of-type(4) { transform: translateY(51px) !important; }
-        .react-calendar-heatmap-weekday-label:nth-of-type(5) { transform: translateY(64px) !important; }
-        .react-calendar-heatmap-weekday-label:nth-of-type(6) { transform: translateY(77px) !important; }
-        .react-calendar-heatmap-weekday-label:nth-of-type(7) { transform: translateY(90px) !important; }
-
         .react-calendar-heatmap .color-empty {
           fill: #f8fafc !important;
         }
 
-        /* 단계별 색상 정의 (검은색 방지) */
-        /* Programming (Blue) */
+        /* 단계별 색상 정의 */
         .grass-blue .color-scale-1 { fill: #dbeafe !important; }
         .grass-blue .color-scale-2 { fill: #93c5fd !important; }
         .grass-blue .color-scale-3 { fill: #3b82f6 !important; }
         .grass-blue .color-scale-4 { fill: #1e40af !important; }
         .grass-blue .color-box { background-color: #1e40af; }
 
-        /* Art (Orange) */
         .grass-orange .color-scale-1 { fill: #ffedd5 !important; }
         .grass-orange .color-scale-2 { fill: #fdba74 !important; }
         .grass-orange .color-scale-3 { fill: #f97316 !important; }
         .grass-orange .color-scale-4 { fill: #9a3412 !important; }
         .grass-orange .color-box { background-color: #9a3412; }
 
-        /* Career (Green) */
         .grass-green .color-scale-1 { fill: #dcfce7 !important; }
         .grass-green .color-scale-2 { fill: #86efac !important; }
         .grass-green .color-scale-3 { fill: #22c55e !important; }
