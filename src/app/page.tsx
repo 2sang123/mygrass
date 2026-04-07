@@ -66,8 +66,18 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           /* [중요] flex와 items-stretch를 사용해 잔디와 요일 높이를 동기화합니다. */
           <div className="heatmap-container flex items-stretch gap-2 min-h-[110px]">
             
-            {/* 1. 요일 라벨 영역: 잔디밭 왼쪽 끝에 고정 */}
-            <div className="flex flex-col justify-between py-[2px] text-[9px] md:text-[10px] font-bold text-slate-400 select-none w-4 shrink-0 leading-none">
+            {/* 1. 요일 라벨 영역: 잔디 본체(SVG)와 높이를 완벽히 동기화 */}
+            <div 
+              className="flex flex-col justify-between text-slate-400 font-bold select-none shrink-0"
+              style={{ 
+                width: '18px',           /* 요일 너비 고정 */
+                height: 'auto',          /* 자동 높이 */
+                aspectRatio: '7 / 45',   /* [핵심] 잔디 7줄의 세로 비율에 맞게 조절 (수치 미세조정 가능) */
+                fontSize: 'clamp(8px, 1.2vw, 10px)', /* 화면이 작아지면 글자 크기도 같이 줄어듦 */
+                paddingTop: '1.2rem',    /* 월 라벨(Jan 등)의 높이만큼 위에서 밀어주기 */
+                paddingBottom: '0.2rem'
+              }}
+            >
               <span>일</span>
               <span>월</span>
               <span>화</span>
