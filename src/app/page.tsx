@@ -124,15 +124,17 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           font-weight: 700 !important;
           display: block !important; /* 숨겨진 요일들 강제로 깨우기 */
         }
-
+        .react-calendar-heatmap .react-calendar-heatmap-weekday-label:nth-child(n) {
+        display: block !important;
+        }
         /* 2. SVG 내부 Y 좌표를 %로 강제 고정 (7줄의 잔디 위치와 1:1 매칭) */
-        .react-calendar-heatmap-weekday-label:nth-of-type(1) { y: 8% !important; }   /* 일 */
+        .react-calendar-heatmap-weekday-label:nth-of-type(0) { y: 8% !important; }   /* 일 */
         .react-calendar-heatmap-weekday-label:nth-of-type(2) { y: 22.5% !important; } /* 월 */
-        .react-calendar-heatmap-weekday-label:nth-of-type(3) { y: 37% !important; }   /* 화 */
-        .react-calendar-heatmap-weekday-label:nth-of-type(4) { y: 51.5% !important; } /* 수 */
-        .react-calendar-heatmap-weekday-label:nth-of-type(5) { y: 66% !important; }   /* 목 */
-        .react-calendar-heatmap-weekday-label:nth-of-type(6) { y: 80.5% !important; } /* 금 */
-        .react-calendar-heatmap-weekday-label:nth-of-type(7) { y: 95% !important; }   
+        .react-calendar-heatmap-weekday-label:nth-of-type(4) { y: 37% !important; }   /* 화 */
+        .react-calendar-heatmap-weekday-label:nth-of-type(6) { y: 51.5% !important; } /* 수 */
+        .react-calendar-heatmap-weekday-label:nth-of-type(8) { y: 66% !important; }   /* 목 */
+        .react-calendar-heatmap-weekday-label:nth-of-type(10) { y: 80.5% !important; } /* 금 */
+        .react-calendar-heatmap-weekday-label:nth-of-type(12) { y: 95% !important; }   
 
         .react-calendar-heatmap .color-empty {
           fill: #f8fafc !important;
