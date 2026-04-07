@@ -56,36 +56,29 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
         </button>
       </div>
       
-      <div className={`relative p-6 pt-10 pb-4 bg-white rounded-3xl shadow-sm border border-gray-100 ${colorClass}`}>
+      {/* pt-12로 상단 여백 확보 */}
+      <div className={`relative p-6 pt-12 pb-6 bg-white rounded-3xl shadow-sm border border-gray-100 ${colorClass}`}>
         {isLoading ? (
           <div className="h-[100px] flex items-center justify-center text-gray-400 text-sm font-medium">
             데이터 동기화 중...
           </div>
         ) : (
-          <div className="heatmap-container relative ml-6"> {/* ml-6으로 요일이 들어갈 왼쪽 공간 확보 */}
+          /* [중요] flex와 items-stretch를 사용해 잔디와 요일 높이를 동기화합니다. */
+          <div className="heatmap-container flex items-stretch gap-2 min-h-[110px]">
             
-            {/* [핵심] 요일 라벨: 라이브러리 SVG와 동일한 비율로 움직이도록 absolute 설정 */}
-            <div className="absolute left-[-24px] top-0 w-full h-full pointer-events-none overflow-visible">
-              <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-                {['일', '월', '화', '수', '목', '금', '토'].map((day, i) => (
-                  <text
-                    key={day}
-                    x="0"
-                    /* 10.5%는 첫 번째 칸 위치, 14.3%는 한 칸의 수직 비율입니다. */
-                    y={`${10.5 + (i * 14.3)}%`} 
-                    fontSize="9"
-                    fontWeight="800"
-                    fill="#94a3b8"
-                    dominantBaseline="middle"
-                    className="select-none"
-                  >
-                    {day}
-                  </text>
-                ))}
-              </svg>
+            {/* 1. 요일 라벨 영역: 잔디밭 왼쪽 끝에 고정 */}
+            <div className="flex flex-col justify-between py-[2px] text-[9px] md:text-[10px] font-bold text-slate-400 select-none w-4 shrink-0 leading-none">
+              <span>일</span>
+              <span>월</span>
+              <span>화</span>
+              <span>수</span>
+              <span>목</span>
+              <span>금</span>
+              <span>토</span>
             </div>
 
-            <div className="ml-4">
+            {/* 2. 잔디밭 영역 */}
+            <div className="flex-1 overflow-visible">
               <CalendarHeatmap
                 startDate={startDate}
                 endDate={endDate}
