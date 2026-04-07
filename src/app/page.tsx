@@ -128,13 +128,15 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
 
         /* 5. 컨테이너 패딩 조절로 라벨이 안 잘리게 함 */
         .heatmap-container {
-          margin-top: 0px;    /* 위쪽 여백 제거 */
+          margin-top: 3px;    /* 위쪽 여백*/
           margin-bottom: -10px; /* 아래쪽 여백을 음수로 주어 범례를 위로 끌어올림 */
+          overflow: visible !important;
         }
         
         /* 라이브러리 기본 여백 제거 */
         .react-calendar-heatmap {
           height: auto;
+          overflow: visible !important;
         }
       `}</style>
     </div>
