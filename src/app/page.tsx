@@ -117,24 +117,25 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           transform: translateY(-8px) !important;
         }
 
-        /* 요일 라벨 전체를 보이게 하고 위치를 미세 조정합니다. */
+        /* 1. 모든 요일 라벨의 숨김 해제 및 스타일 */
         .react-calendar-heatmap .react-calendar-heatmap-weekday-label {
           font-size: 8px !important;
-          fill: #64748b !important; /* 가독성을 위해 조금 더 진한 회색으로 변경 */
+          fill: #64748b !important;
           font-weight: 700 !important;
-          display: block !important;
-          dominant-baseline: middle !important; /* 텍스트 중앙 정렬 */
+          display: block !important; /* 라이브러리의 display: none을 무력화 */
+          visibility: visible !important;
+          opacity: 1 !important;
         }
 
-        /* 2. 각 요일의 Y축 위치를 라이브러리 좌표계(13단위)에 맞춰 강제 고정 */
-        /* n번째 text 요소가 어떤 요일인지 상관없이 위에서부터 순서대로 배치합니다. */
-        .react-calendar-heatmap g > text.react-calendar-heatmap-weekday-label:nth-of-type(1) { y: 12px !important; }
-        .react-calendar-heatmap g > text.react-calendar-heatmap-weekday-label:nth-of-type(2) { y: 25px !important; }
-        .react-calendar-heatmap g > text.react-calendar-heatmap-weekday-label:nth-of-type(3) { y: 38px !important; }
-        .react-calendar-heatmap g > text.react-calendar-heatmap-weekday-label:nth-of-type(4) { y: 51px !important; }
-        .react-calendar-heatmap g > text.react-calendar-heatmap-weekday-label:nth-of-type(5) { y: 64px !important; }
-        .react-calendar-heatmap g > text.react-calendar-heatmap-weekday-label:nth-of-type(6) { y: 77px !important; }
-        .react-calendar-heatmap g > text.react-calendar-heatmap-weekday-label:nth-of-type(7) { y: 90px !important; }
+        /* 2. 요일 라벨의 위치를 좌표(y)가 아닌 '순서'에 따라 강제로 재배치 */
+        /* 라이브러리가 0, 2, 4만 보여주려고 해도, 모든 text 요소를 세로로 나열합니다. */
+        .react-calendar-heatmap-weekday-label:nth-of-type(1) { transform: translateY(12px) !important; }
+        .react-calendar-heatmap-weekday-label:nth-of-type(2) { transform: translateY(25px) !important; }
+        .react-calendar-heatmap-weekday-label:nth-of-type(3) { transform: translateY(38px) !important; }
+        .react-calendar-heatmap-weekday-label:nth-of-type(4) { transform: translateY(51px) !important; }
+        .react-calendar-heatmap-weekday-label:nth-of-type(5) { transform: translateY(64px) !important; }
+        .react-calendar-heatmap-weekday-label:nth-of-type(6) { transform: translateY(77px) !important; }
+        .react-calendar-heatmap-weekday-label:nth-of-type(7) { transform: translateY(90px) !important; }
 
         .react-calendar-heatmap .color-empty {
           fill: #f8fafc !important;
