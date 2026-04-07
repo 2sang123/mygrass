@@ -63,10 +63,17 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           </div>
         ) : (
           /* flex를 사용하여 요일 라벨과 잔디밭을 가로로 배치 */
-          <div className="heatmap-container flex items-start gap-3">
+          <div className="heatmap-container flex items-start gap-2">
             
             {/* 직접 만든 요일 라벨 영역 */}
-            <div className="flex flex-col justify-between h-[91px] text-[9px] font-bold text-slate-400 pt-[12px] pb-[2px] leading-none select-none">
+            <div 
+                className="flex flex-col text-[9px] font-bold text-slate-400 select-none"
+                style={{ 
+                  marginTop: '13px',    /* 월 라벨(Jan 등) 높이만큼 내려서 첫 칸에 맞춤 */
+                  gap: '4.5px',         /* 잔디 칸 사이의 간격과 맞추기 위한 미세 조정 */
+                  lineHeight: '8.5px'     /* 글자 자체의 높이 제어 */
+                }}
+              >
               <span>일</span>
               <span>월</span>
               <span>화</span>
