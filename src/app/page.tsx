@@ -6,7 +6,7 @@ import 'react-calendar-heatmap/dist/styles.css';
 import { format, startOfYear, endOfYear, subDays, isSameDay } from 'date-fns';
 import { supabase } from '../lib/supabase';
 
-// 1. 스트릭 계산 함수 (이전과 동일)
+// 1. 스트릭 계산 함수
 const calculateStreak = (dates: string[]) => {
   if (dates.length === 0) return { current: 0, max: 0 };
   const sortedDates = [...new Set(dates)].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
@@ -39,7 +39,6 @@ const calculateStreak = (dates: string[]) => {
 };
 
 const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoading }: any) => {
-  // 배경을 꽉 채우기 위한 1년치 빈 데이터 생성 (배경 그리드용)
   const startDate = startOfYear(new Date());
   const endDate = endOfYear(new Date());
   
@@ -51,7 +50,7 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
         </h2>
         <button 
           onClick={onAdd}
-          className="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all"
+          className="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all active:scale-90"
         >
           <span className="text-gray-400 font-bold">+</span>
         </button>
@@ -85,11 +84,10 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           </div>
         )}
 
-        {/* 하단 범례 */}
-        <div className="flex justify-end items-center gap-2 mt-6 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+        <div className="flex justify-end items-center gap-2 mt-8 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
           <span>Less</span>
           <div className="flex gap-1.5">
-            <div className="w-3 h-3 rounded-[3px] bg-gray-50 border border-gray-100"></div>
+            <div className="w-3 h-3 rounded-[3px] bg-[#f8fafc] border border-gray-100"></div>
             <div className="w-3 h-3 rounded-[3px] opacity-30 color-box"></div>
             <div className="w-3 h-3 rounded-[3px] opacity-60 color-box"></div>
             <div className="w-3 h-3 rounded-[3px] opacity-100 color-box"></div>
@@ -99,42 +97,45 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
       </div>
 
       <style jsx global>{`
-        /* 1. 월 라벨 디자인 수정 */
+        /* 1. 월 라벨 위치 및 스타일 강제 보정 */
         .react-calendar-heatmap .react-calendar-heatmap-month-label {
-          font-size: 11px;
-          fill: #64748b; /* 슬레이트 500 */
-          font-weight: 700;
-          dominant-baseline: hanging;
+          font-size: 11px !important;
+          fill: #64748b !important;
+          font-weight: 700 !important;
+          /* 라벨을 위쪽으로 살짝 올림 */
+          transform: translateY(-5px);
         }
 
-        /* 2. 요일 라벨 디자인 수정 */
+        /* 2. 요일 라벨 스타일 */
         .react-calendar-heatmap .react-calendar-heatmap-weekday-label {
-          font-size: 10px;
-          fill: #cbd5e1; /* 슬레이트 300 */
-          font-weight: 600;
+          font-size: 10px !important;
+          fill: #cbd5e1 !important;
+          font-weight: 600 !important;
         }
 
-        /* 3. 배경 그리드 및 잔디 스타일 */
-        .react-calendar-heatmap rect {
-          stroke-width: 0;
-          transition: fill 0.2s ease;
-        }
-
-        /* 데이터가 없는 빈 칸(배경 그리드) */
+        /* 3. 빈 칸(그리드) 색상 고정 */
         .react-calendar-heatmap .color-empty {
-          fill: #f8fafc; /* 아주 연한 푸른빛 회색 */
+          fill: #f8fafc !important;
         }
 
-        /* 호버 시 은은한 강조 */
+        /* 4. 호버 효과 */
+        .react-calendar-heatmap rect {
+          cursor: pointer;
+          transition: fill 0.2s ease, stroke 0.2s;
+        }
         .react-calendar-heatmap rect:hover {
-          fill-opacity: 0.8;
-          stroke: #94a3b8;
-          stroke-width: 1px;
+          stroke: #94a3b8 !important;
+          stroke-width: 1px !important;
         }
 
-        /* 4. 컨테이너 여백 조정 */
+        /* 5. 컨테이너 패딩 조절로 라벨이 안 잘리게 함 */
         .heatmap-container {
-          margin-top: 10px;
+          padding: 10px 0;
+        }
+        
+        /* 라이브러리 기본 여백 제거 */
+        .react-calendar-heatmap {
+          overflow: visible;
         }
       `}</style>
     </div>
@@ -163,7 +164,6 @@ export default function Home() {
         const existing = target.find(d => d.date === item.date);
         if (existing) {
           existing.count += 1;
-          // 메모 개선: 기존 메모에 줄바꿈하고 새 메모 추가 (타임라인 방식)
           existing.note += `\n• ${item.note}`;
         } else {
           target.push({ date: item.date, count: 1, note: `• ${item.note}` });
@@ -193,7 +193,7 @@ export default function Home() {
   };
 
   const StreakCard = ({ label, stats, colorClass }) => (
-    <div className={`flex-1 min-w-[120px] p-4 bg-white rounded-2xl shadow-sm border-b-4 ${colorClass} border-x border-t border-gray-100`}>
+    <div className={`flex-1 min-w-[120px] p-4 bg-white rounded-2xl shadow-sm border-b-4 ${colorClass} border-x border-t border-gray-100 transition-transform active:scale-95`}>
       <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{label}</div>
       <div className="flex items-baseline gap-1">
         <span className="text-2xl font-black text-gray-900">{stats.current}</span>
@@ -223,7 +223,7 @@ export default function Home() {
 
       {selectedDate && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setSelectedDate(null)}>
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h3 className="text-xs text-blue-600 font-bold uppercase tracking-widest mb-1">{selectedDate.date}</h3>
@@ -242,22 +242,9 @@ export default function Home() {
       )}
 
       <style jsx global>{`
-        .react-calendar-heatmap text { font-size: 10px; fill: #9ca3af; font-weight: 600; }
-        .react-calendar-heatmap .color-empty { fill: #f8f9fa; }
-        
-        /* 호버 시 위치 이동 제거, 테두리 강조만 남김 */
-        .react-calendar-heatmap rect { 
-          cursor: pointer; 
-          transition: stroke 0.2s, stroke-width 0.2s; 
-        }
-        .react-calendar-heatmap rect:hover { 
-          stroke: #4b5563; 
-          stroke-width: 0.6px;
-        }
-        
-        .grass-blue .color-scale-1 { fill: #e0e7ff; } .grass-blue .color-scale-4 { fill: #3730a3; } .grass-blue .color-box { background-color: #3730a3; }
-        .grass-orange .color-scale-1 { fill: #ffedd5; } .grass-orange .color-scale-4 { fill: #9a3412; } .grass-orange .color-box { background-color: #9a3412; }
-        .grass-green .color-scale-1 { fill: #dcfce7; } .grass-green .color-scale-4 { fill: #166534; } .grass-green .color-box { background-color: #166534; }
+        .grass-blue .color-scale-1 { fill: #e0e7ff !important; } .grass-blue .color-scale-4 { fill: #3730a3 !important; } .grass-blue .color-box { background-color: #3730a3; }
+        .grass-orange .color-scale-1 { fill: #ffedd5 !important; } .grass-orange .color-scale-4 { fill: #9a3412 !important; } .grass-orange .color-box { background-color: #9a3412; }
+        .grass-green .color-scale-1 { fill: #dcfce7 !important; } .grass-green .color-scale-4 { fill: #166534 !important; } .grass-green .color-box { background-color: #166534; }
       `}</style>
     </main>
   );
