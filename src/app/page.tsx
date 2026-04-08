@@ -66,25 +66,19 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           /* [중요] flex와 items-stretch를 사용해 잔디와 요일 높이를 동기화합니다. */
           <div className="heatmap-container flex items-stretch gap-2 min-h-[110px]">
             
-            {/* 1. 요일 라벨 영역: 잔디 본체(SVG)와 높이를 완벽히 동기화 */}
+            {/* [PC용 전용] 화면이 640px 이상일 때만 보이는 7요일 라벨 */}
             <div 
-              className="flex flex-col justify-between text-slate-400 font-bold select-none shrink-0"
+              className="hidden sm:flex flex-col justify-between text-slate-400 font-bold select-none shrink-0"
               style={{ 
-                width: '18px',           /* 요일 너비 고정 */
-                height: 'auto',          /* 자동 높이 */
-                aspectRatio: '7 / 45',   /* [핵심] 잔디 7줄의 세로 비율에 맞게 조절 (수치 미세조정 가능) */
-                fontSize: 'clamp(8px, 1.2vw, 10px)', /* 화면이 작아지면 글자 크기도 같이 줄어듦 */
-                paddingTop: '1.2rem',    /* 월 라벨(Jan 등)의 높이만큼 위에서 밀어주기 */
+                width: '18px', 
+                height: 'auto', 
+                aspectRatio: '7 / 45', 
+                fontSize: '10px',
+                paddingTop: '1.2rem',
                 paddingBottom: '0.2rem'
               }}
             >
-              <span>일</span>
-              <span>월</span>
-              <span>화</span>
-              <span>수</span>
-              <span>목</span>
-              <span>금</span>
-              <span>토</span>
+              <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
             </div>
 
             {/* 2. 잔디밭 영역 */}
@@ -95,6 +89,28 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
                 values={data}
                 showWeekdayLabels={false}
                 classForValue={(value) => {
+                  if (!value || value.count === 0) return 'color-empty';
+                  return `color-scale-${Math.min(value.count, 4)}`;
+                }}
+                onClick={(value) => {
+                  if (value && value.note) onSelect(value);
+                }}
+                transformDayElement={(element) =>
+                  React.cloneElement(element as React.ReactElement, {
+                    rx: 2.5,
+                    ry: 2.5
+                  })
+                }
+              />
+            </div>
+            <div className="block sm:hidden">
+                <CalendarHeatmap
+                  startDate={startDate}
+                  endDate={endDate}
+                  values={data}
+                  showWeekdayLabels={true} // 모바일은 라이브러리 기본 월수금을 켭니다.
+                  weekdayLabels={['', '월', '', '수', '', '금', '']}
+                  classForValue={(value) => {
                   if (!value || value.count === 0) return 'color-empty';
                   return `color-scale-${Math.min(value.count, 4)}`;
                 }}
