@@ -132,6 +132,25 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           overflow: visible !important;
         }
         
+        /* 화면 너비가 640px 이하(모바일)일 때 적용 */
+        @media (max-width: 640px) {
+          /* 1. 요일 라벨이 너무 어긋나면 아예 숨겨서 깔끔하게 만듭니다. */
+          .heatmap-container > div:first-child {
+            display: none; 
+          }
+          
+          /* 2. 잔디밭이 짤리지 않고 옆으로 밀어서 볼 수 있게 스크롤 허용 */
+          .heatmap-container {
+            overflow-x: auto;
+            padding-bottom: 10px;
+            gap: 0px !important;
+          }
+          
+          .heatmap-container > div:last-child {
+            min-width: 600px; /* 모바일에서도 잔디 형태가 유지되도록 최소 너비 고정 */
+          }
+        }
+
         .heatmap-container {
           margin-bottom: -15px; /* 하단 여백 조절 */
         }
