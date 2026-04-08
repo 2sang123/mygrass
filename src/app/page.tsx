@@ -66,7 +66,7 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           /* [중요] flex와 items-stretch를 사용해 잔디와 요일 높이를 동기화합니다. */
           <div className="heatmap-container flex items-stretch gap-2 min-h-[110px]">
             
-            {/* [PC용 전용] 화면이 640px 이상일 때만 보이는 7요일 라벨 */}
+            {/* [PC용 전용] 화면이 800px 이상일 때만 보이는 7요일 라벨 */}
             <div 
               className="hidden sm:flex flex-col justify-between text-slate-400 font-bold select-none shrink-0"
               style={{ 
@@ -163,12 +163,12 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           }
           
           .heatmap-container > div:last-child {
-            min-width: 600px; /* 모바일에서도 잔디 형태가 유지되도록 최소 너비 고정 */
+            min-width: 780px; /* 모바일에서도 잔디 형태가 유지되도록 최소 너비 고정 */
           }
         }
 
         .heatmap-container {
-          margin-bottom: -15px; /* 하단 여백 조절 */
+          margin-bottom: -10px; /* 하단 여백 조절 */
         }
 
         .react-calendar-heatmap .react-calendar-heatmap-month-label {
