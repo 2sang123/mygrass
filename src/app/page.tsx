@@ -149,7 +149,7 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
         }
         
         /* 화면 너비가 640px 이하(모바일)일 때 적용 */
-        @media (max-width: 640px) {
+        @media (max-width: 800px) {
           /* 1. 요일 라벨이 너무 어긋나면 아예 숨겨서 깔끔하게 만듭니다. */
           .heatmap-container > div:first-child {
             display: none; 
