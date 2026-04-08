@@ -66,9 +66,9 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           /* [중요] flex와 items-stretch를 사용해 잔디와 요일 높이를 동기화합니다. */
           <div className="heatmap-container flex items-stretch gap-2 min-h-[110px]">
             
-            {/* [PC용 전용] 화면이 800px 이상일 때만 보이는 7요일 라벨 */}
+            {/* [PC용 요일] 840px 이상에서만 표시 */}
             <div 
-              className="hidden sm:flex flex-col justify-between text-slate-400 font-bold select-none shrink-0"
+              className="pc-weekday-labels flex flex-col justify-between text-slate-400 font-bold select-none shrink-0"
               style={{ 
                 width: '18px', 
                 height: 'auto', 
@@ -83,47 +83,38 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
 
             {/* 2. 잔디밭 영역 */}
             <div className="flex-1 overflow-visible">
-              <CalendarHeatmap
-                startDate={startDate}
-                endDate={endDate}
-                values={data}
-                showWeekdayLabels={false}
-                classForValue={(value) => {
-                  if (!value || value.count === 0) return 'color-empty';
-                  return `color-scale-${Math.min(value.count, 4)}`;
-                }}
-                onClick={(value) => {
-                  if (value && value.note) onSelect(value);
-                }}
-                transformDayElement={(element) =>
-                  React.cloneElement(element as React.ReactElement, {
-                    rx: 2.5,
-                    ry: 2.5
-                  })
-                }
-              />
-            </div>
-            <div className="block sm:hidden">
+              {/* [PC용 잔디] 840px 이상에서 요일 라벨 없이 표시 */}
+              <div className="pc-heatmap">
                 <CalendarHeatmap
                   startDate={startDate}
                   endDate={endDate}
                   values={data}
-                  showWeekdayLabels={true} // 모바일은 라이브러리 기본 월수금을 켭니다.
+                  showWeekdayLabels={false}
+                  classForValue={(value) => {
+                    if (!value || value.count === 0) return 'color-empty';
+                    return `color-scale-${Math.min(value.count, 4)}`;
+                  }}
+                  onClick={(value) => { if (value && value.note) onSelect(value); }}
+                  transformDayElement={(element) => React.cloneElement(element, { rx: 2.5, ry: 2.5 })}
+                />
+              </div>
+
+            {/* [모바일용 잔디] 840px 미만에서 월수금 라벨 포함하여 표시 */}
+              <div className="mobile-heatmap">
+                <CalendarHeatmap
+                  startDate={startDate}
+                  endDate={endDate}
+                  values={data}
+                  showWeekdayLabels={true}
                   weekdayLabels={['', '월', '', '수', '', '금', '']}
                   classForValue={(value) => {
-                  if (!value || value.count === 0) return 'color-empty';
-                  return `color-scale-${Math.min(value.count, 4)}`;
-                }}
-                onClick={(value) => {
-                  if (value && value.note) onSelect(value);
-                }}
-                transformDayElement={(element) =>
-                  React.cloneElement(element as React.ReactElement, {
-                    rx: 2.5,
-                    ry: 2.5
-                  })
-                }
-              />
+                    if (!value || value.count === 0) return 'color-empty';
+                    return `color-scale-${Math.min(value.count, 4)}`;
+                  }}
+                  onClick={(value) => { if (value && value.note) onSelect(value); }}
+                  transformDayElement={(element) => React.cloneElement(element, { rx: 2.5, ry: 2.5 })}
+                />
+              </div>
             </div>
           </div>
         )}
@@ -147,30 +138,31 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           height: auto;
           overflow: visible !important;
         }
-        
-        /* 화면 너비가 640px 이하(모바일)일 때 적용 */
-        @media (max-width: 800px) {
-          /* 1. 요일 라벨이 너무 어긋나면 아예 숨겨서 깔끔하게 만듭니다. */
-          .heatmap-container > div:first-child {
-            display: none; 
-          }
-          
-          /* 2. 잔디밭이 짤리지 않고 옆으로 밀어서 볼 수 있게 스크롤 허용 */
+        /* 1. PC 모드 (840px 이상) */
+        @media (min-width: 841px) {
+          .pc-weekday-labels { display: flex !important; }
+          .pc-heatmap { display: block !important; }
+          .mobile-heatmap { display: none !important; }
+        }
+
+        /* 2. 모바일/태블릿 모드 (840px 이하) */
+        @media (max-width: 840px) {
+          .pc-weekday-labels { display: none !important; }
+          .pc-heatmap { display: none !important; }
+          .mobile-heatmap { display: block !important; }
+
           .heatmap-container {
             overflow-x: auto;
-            padding-bottom: 10px;
+            padding-bottom: 15px;
             gap: 0px !important;
           }
           
-          .heatmap-container > div:last-child {
-            min-width: 780px; /* 모바일에서도 잔디 형태가 유지되도록 최소 너비 고정 */
+          /* 스크롤 시 잔디 형태 보존 */
+          .mobile-heatmap {
+            min-width: 800px; 
           }
         }
-
-        .heatmap-container {
-          margin-bottom: -10px; /* 하단 여백 조절 */
-        }
-
+          
         .react-calendar-heatmap .react-calendar-heatmap-month-label {
           font-size: 11px !important;
           fill: #64748b !important;
