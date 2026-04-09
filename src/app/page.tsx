@@ -263,7 +263,7 @@ export default function Home() {
 
         // 3. Supabase Storage 업로드
         const { data, error: uploadError } = await supabase.storage
-          .from('grass-images')
+          .from('grass-image')
           .upload(fileName, file);
 
         if (uploadError) {
@@ -273,7 +273,7 @@ export default function Home() {
 
         // 4. 업로드된 이미지의 공개 URL 가져오기
         const { data: { publicUrl } } = supabase.storage
-          .from('grass-images')
+          .from('grass-image')
           .getPublicUrl(fileName);
         
         imageUrl = publicUrl;
