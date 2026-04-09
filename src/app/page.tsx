@@ -255,58 +255,62 @@ export default function Home() {
   useEffect(() => { fetchRecords(); }, []);
 
   const addGrass = async (category: 'p' | 'a' | 'c') => {
-  // 1. 메모 입력 받기
   const note = prompt("오늘 어떤 일을 하셨나요?");
-  if (note === null) return; // 취소 클릭 시 종료
+  if (note === null) return;
 
-  // 2. 파일 선택용 input 생성 (메모리상에서만 존재)
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
   fileInput.accept = 'image/*';
 
-  // 3. [핵심] 파일 선택 완료 시 실행될 핸들러
   fileInput.onchange = async (e: any) => {
     const file = e.target.files?.[0];
     let uploadedUrl = null;
 
     if (file) {
-      // 파일명 정규화 (한글/공백 방지)
-      const fileName = `${Date.now()}_record.${file.name.split('.').pop()}`;
-      
-      const { data, error: uploadError } = await supabase.storage
-        .from('grass-image') // 버킷 이름이 grass-image인지 다시 확인!
-        .upload(fileName, file);
+      // 1. 파일명에서 특수문자 제거 (안전한 업로드를 위해)
+      const fileExt = file.name.split('.').pop();
+      const safeFileName = `${Date.now()}.${fileExt}`;
+
+      console.log('업로드 시도 중:', safeFileName);
+
+      // 2. Storage 업로드 시도
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('grass-image') 
+        .upload(safeFileName, file);
 
       if (uploadError) {
-        console.error('업로드 실패:', uploadError.message);
+        console.error('업로드 실패 원인:', uploadError);
+        alert(`이미지 업로드 실패: ${uploadError.message}`);
+        // 업로드 실패 시 여기서 중단할지, 메모만 저장할지 결정 (일단 진행)
       } else {
-        const { data: { publicUrl } } = supabase.storage
+        // 3. 업로드 성공 시에만 URL 가져오기
+        const { data } = supabase.storage
           .from('grass-image')
-          .getPublicUrl(fileName);
-        uploadedUrl = publicUrl;
+          .getPublicUrl(safeFileName);
+        
+        uploadedUrl = data.publicUrl;
+        console.log('업로드 성공! URL:', uploadedUrl);
       }
     }
 
-    // 최종 DB 저장 (이미지가 없더라도 note는 저장됨)
+    // 4. DB 저장 실행
     const { error: dbError } = await supabase.from('grass_records').insert([
       { 
         category, 
         date: format(new Date(), 'yyyy-MM-dd'), 
         count: 1, 
-        note: note || "기록 없음", 
-        image_url: uploadedUrl 
+        note: note.trim() || "기록 없음", 
+        image_url: uploadedUrl // 여기서 null이면 DB에도 NULL이 들어감
       }
     ]);
 
     if (!dbError) {
-      fetchRecords(); // 잔디 갱신
+      fetchRecords();
     } else {
       console.error('DB 저장 실패:', dbError.message);
     }
   };
 
-  // 4. [매우 중요] prompt 창이 완전히 닫힌 후 파일 탐색기를 열도록 0.3초 지연
-  // 이 부분이 영어 입력 오류를 해결하는 핵심 포인트입니다.
   setTimeout(() => {
     fileInput.click();
   }, 300);
