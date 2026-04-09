@@ -255,64 +255,62 @@ export default function Home() {
   useEffect(() => { fetchRecords(); }, []);
 
   const addGrass = async (category: 'p' | 'a' | 'c') => {
-    // 1. 메모 먼저 받기 (변수에 확실히 저장)
-    const inputNote = prompt("오늘 어떤 일을 하셨나요?");
-    
-    // 취소를 눌렀거나 빈값이면 종료
-    if (inputNote === null) return;
-    const note = inputNote.trim() || "기록 없음";
+  // 1. 메모 입력 받기
+  const note = prompt("오늘 어떤 일을 하셨나요?");
+  if (note === null) return; // 취소 클릭 시 종료
 
-    // 2. 파일 선택창 만들기
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
+  // 2. 파일 선택용 input 생성 (메모리상에서만 존재)
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*';
 
-    // 3. 파일 선택 후 로직
-    fileInput.onchange = async (e: any) => {
-      const file = e.target.files[0];
-      let uploadedUrl = null;
+  // 3. [핵심] 파일 선택 완료 시 실행될 핸들러
+  fileInput.onchange = async (e: any) => {
+    const file = e.target.files?.[0];
+    let uploadedUrl = null;
 
-      if (file) {
-        const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
-        
-        const { data, error: uploadError } = await supabase.storage
-          .from('grass-image') // 버킷 이름 확인 (image인지 images인지)
-          .upload(fileName, file);
+    if (file) {
+      // 파일명 정규화 (한글/공백 방지)
+      const fileName = `${Date.now()}_record.${file.name.split('.').pop()}`;
+      
+      const { data, error: uploadError } = await supabase.storage
+        .from('grass-image') // 버킷 이름이 grass-image인지 다시 확인!
+        .upload(fileName, file);
 
-        if (uploadError) {
-          console.error('Upload Error:', uploadError);
-        } else {
-          const { data: { publicUrl } } = supabase.storage
-            .from('grass-image')
-            .getPublicUrl(fileName);
-          uploadedUrl = publicUrl;
-        }
+      if (uploadError) {
+        console.error('업로드 실패:', uploadError.message);
+      } else {
+        const { data: { publicUrl } } = supabase.storage
+          .from('grass-image')
+          .getPublicUrl(fileName);
+        uploadedUrl = publicUrl;
       }
+    }
 
-      // 최종 DB 저장 함수 호출
-      await finalSave(uploadedUrl);
-    };
+    // 최종 DB 저장 (이미지가 없더라도 note는 저장됨)
+    const { error: dbError } = await supabase.from('grass_records').insert([
+      { 
+        category, 
+        date: format(new Date(), 'yyyy-MM-dd'), 
+        count: 1, 
+        note: note || "기록 없음", 
+        image_url: uploadedUrl 
+      }
+    ]);
 
-    // 4. [핵심] 브라우저가 이벤트를 처리할 시간을 준 뒤 클릭 트리거
-    // 이 방법이 prompt와의 충돌을 방지하여 입력 문제를 해결해줍니다.
-    setTimeout(() => {
-      fileInput.click();
-    }, 100);
-
-    // 5. DB 저장 헬퍼 함수
-    const finalSave = async (imageUrl: string | null) => {
-      const { error: dbError } = await supabase.from('grass_records').insert([
-        { 
-          category, 
-          date: format(new Date(), 'yyyy-MM-dd'), 
-          count: 1, 
-          note: note, // 위에서 저장한 변수 사용
-          image_url: imageUrl 
-        }
-      ]);
-      if (!dbError) fetchRecords();
-    };
+    if (!dbError) {
+      fetchRecords(); // 잔디 갱신
+    } else {
+      console.error('DB 저장 실패:', dbError.message);
+    }
   };
+
+  // 4. [매우 중요] prompt 창이 완전히 닫힌 후 파일 탐색기를 열도록 0.3초 지연
+  // 이 부분이 영어 입력 오류를 해결하는 핵심 포인트입니다.
+  setTimeout(() => {
+    fileInput.click();
+  }, 300);
+};
 
   const StreakCard = ({ label, stats, colorClass }) => (
     <div className={`flex-1 min-w-[120px] p-4 bg-white rounded-2xl shadow-sm border-b-4 ${colorClass} border-x border-t border-gray-100 transition-transform active:scale-95`}>
