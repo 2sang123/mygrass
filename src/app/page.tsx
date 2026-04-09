@@ -217,18 +217,29 @@ export default function Home() {
       const dates = { p: [], a: [], c: [], total: [] };
 
       data.forEach(item => {
-        dates.total.push(item.date);
-        const target = newRecords[item.category];
-        dates[item.category].push(item.date);
+      dates.total.push(item.date);
+      const target = newRecords[item.category];
+      dates[item.category].push(item.date);
 
-        const existing = target.find(d => d.date === item.date);
-        if (existing) {
-          existing.count += 1;
-          existing.note += `\n• ${item.note}`;
-        } else {
-          target.push({ date: item.date, count: 1, note: `• ${item.note}` });
+      const existing = target.find(d => d.date === item.date);
+      if (existing) {
+        existing.count += 1;
+        existing.note += `\n• ${item.note}`;
+        
+        // [중요] 기존에 이미지가 없었더라도, 새로 발견된 데이터에 이미지가 있다면 추가
+        if (!existing.image_url && item.image_url) {
+          existing.image_url = item.image_url;
         }
-      });
+      } else {
+        // 첫 기록 생성 시 image_url도 함께 저장
+        target.push({ 
+          date: item.date, 
+          count: 1, 
+          note: `• ${item.note}`,
+          image_url: item.image_url // 이 부분이 누락되었을 가능성이 큽니다.
+        });
+      }
+    });
 
       setRecords(newRecords);
       setAllStreaks({
