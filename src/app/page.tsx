@@ -246,10 +246,54 @@ export default function Home() {
   const addGrass = async (category: 'p' | 'a' | 'c') => {
     const note = prompt("오늘 어떤 일을 하셨나요?");
     if (!note) return;
-    const { error } = await supabase.from('grass_records').insert([
-      { category, date: format(new Date(), 'yyyy-MM-dd'), count: 1, note }
-    ]);
-    if (!error) fetchRecords();
+
+    // 1. 파일 선택용 input 생성
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*'; // 이미지 파일만 허용
+    
+    fileInput.onchange = async (e: any) => {
+      const file = e.target.files[0];
+      let imageUrl = null;
+
+      if (file) {
+        // 2. 파일명 중복 방지를 위한 고유 이름 생성 (C++의 Timestamp 느낌)
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}.${fileExt}`;
+
+        // 3. Supabase Storage 업로드
+        const { data, error: uploadError } = await supabase.storage
+          .from('grass-images')
+          .upload(fileName, file);
+
+        if (uploadError) {
+          alert('이미지 업로드에 실패했습니다: ' + uploadError.message);
+          return;
+        }
+
+        // 4. 업로드된 이미지의 공개 URL 가져오기
+        const { data: { publicUrl } } = supabase.storage
+          .from('grass-images')
+          .getPublicUrl(fileName);
+        
+        imageUrl = publicUrl;
+      }
+
+      // 5. DB 저장 (기존 필드 + image_url)
+      const { error: dbError } = await supabase.from('grass_records').insert([
+        { 
+          category, 
+          date: format(new Date(), 'yyyy-MM-dd'), 
+          count: 1, 
+          note, 
+          image_url: imageUrl 
+        }
+      ]);
+
+      if (!dbError) fetchRecords();
+    };
+
+    fileInput.click(); // 파일 탐색기 열기
   };
 
   const StreakCard = ({ label, stats, colorClass }) => (
@@ -292,6 +336,15 @@ export default function Home() {
               <button onClick={() => setSelectedDate(null)} className="text-gray-300 hover:text-gray-900 transition-colors text-2xl">×</button>
             </div>
             <div className="bg-gray-50 rounded-2xl p-5 max-h-[300px] overflow-y-auto border border-gray-100 shadow-inner">
+              {selectedDate.image_url && (
+                <div className="mb-4 rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+                  <img 
+                    src={selectedDate.image_url} 
+                    alt="기록 이미지" 
+                    className="w-full h-auto object-cover max-h-[250px] hover:scale-105 transition-transform duration-300" 
+                  />
+                </div>
+              )}
               <div className="text-gray-700 leading-relaxed text-sm whitespace-pre-wrap font-medium">
                 {selectedDate.note}
               </div>
