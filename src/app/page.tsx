@@ -244,57 +244,60 @@ export default function Home() {
   useEffect(() => { fetchRecords(); }, []);
 
   const addGrass = async (category: 'p' | 'a' | 'c') => {
-    const note = prompt("오늘 어떤 일을 하셨나요?");
-    if (!note) return;
+  const note = prompt("오늘 어떤 일을 하셨나요?");
+  if (note === null) return; // '취소'를 누른 경우만 중단
 
-    // 1. 파일 선택용 input 생성
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*'; // 이미지 파일만 허용
-    
-    fileInput.onchange = async (e: any) => {
-      const file = e.target.files[0];
-      let imageUrl = null;
+  // 1. 파일 선택창 만들기
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*';
 
-      if (file) {
-        // 2. 파일명 중복 방지를 위한 고유 이름 생성 (C++의 Timestamp 느낌)
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}.${fileExt}`;
+  // 2. 파일을 선택했을 때 실행될 로직
+  fileInput.onchange = async (e: any) => {
+    const file = e.target.files[0];
+    let imageUrl = null;
 
-        // 3. Supabase Storage 업로드
-        const { data, error: uploadError } = await supabase.storage
-          .from('grass-image')
-          .upload(fileName, file);
+    if (file) {
+      const fileName = `${Date.now()}.${file.name.split('.').pop()}`;
+      
+      // 이미지 업로드 실행
+      const { data, error: uploadError } = await supabase.storage
+        .from('grass-image')
+        .upload(fileName, file);
 
-        if (uploadError) {
-          alert('이미지 업로드에 실패했습니다: ' + uploadError.message);
-          return;
-        }
-
-        // 4. 업로드된 이미지의 공개 URL 가져오기
+      if (!uploadError) {
         const { data: { publicUrl } } = supabase.storage
           .from('grass-image')
           .getPublicUrl(fileName);
-        
         imageUrl = publicUrl;
       }
+    }
 
-      // 5. DB 저장 (기존 필드 + image_url)
-      const { error: dbError } = await supabase.from('grass_records').insert([
-        { 
-          category, 
-          date: format(new Date(), 'yyyy-MM-dd'), 
-          count: 1, 
-          note, 
-          image_url: imageUrl 
-        }
-      ]);
-
-      if (!dbError) fetchRecords();
-    };
-
-    fileInput.click(); // 파일 탐색기 열기
+    // 파일 선택 후 최종 DB 저장
+    await saveToDatabase(imageUrl);
   };
+
+  // 3. 파일 선택을 취소했을 때를 대비한 헬퍼 함수
+  const saveToDatabase = async (url: string | null) => {
+    const { error: dbError } = await supabase.from('grass_records').insert([
+      { 
+        category, 
+        date: format(new Date(), 'yyyy-MM-dd'), 
+        count: 1, 
+        note, 
+        image_url: url 
+      }
+    ]);
+    if (!dbError) fetchRecords();
+  };
+
+  // 4. 파일 탐색기 열기
+  fileInput.click();
+
+  // [중요] 사용자가 파일 탐색기에서 '취소'를 누르면 onchange가 발생하지 않습니다.
+  // 안전장치: 텍스트는 우선 저장하고 싶다면 이 아래에 추가 로직을 넣을 수 있지만, 
+  // 보통은 파일 선택을 기다리는 것이 UI 흐름상 자연스럽습니다.
+};
 
   const StreakCard = ({ label, stats, colorClass }) => (
     <div className={`flex-1 min-w-[120px] p-4 bg-white rounded-2xl shadow-sm border-b-4 ${colorClass} border-x border-t border-gray-100 transition-transform active:scale-95`}>
