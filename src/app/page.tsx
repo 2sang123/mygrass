@@ -255,67 +255,61 @@ export default function Home() {
   useEffect(() => { fetchRecords(); }, []);
 
   const addGrass = async (category: 'p' | 'a' | 'c') => {
-  const note = prompt("오늘 어떤 일을 하셨나요?");
+  // 1. 메모 먼저 받기
+  const note = prompt("오늘 어떤 일을 하셨나요? (이미지를 안 올리려면 '취소'를 누르세요)");
   if (note === null) return;
 
-  const fileInput = document.createElement('input');
-  fileInput.type = 'file';
-  fileInput.accept = 'image/*';
+  // 2. 이미지 업로드 여부 물어보기
+  const wantImage = confirm("이미지도 함께 업로드하시겠습니까?");
 
-  fileInput.onchange = async (e: any) => {
-    const file = e.target.files?.[0];
-    let uploadedUrl = null;
+  if (wantImage) {
+    // [이미지 업로드 경로]
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
 
-    if (file) {
-      // 1. 파일명에서 특수문자 제거 (안전한 업로드를 위해)
-      const fileExt = file.name.split('.').pop();
-      const safeFileName = `${Date.now()}.${fileExt}`;
+    fileInput.onchange = async (e: any) => {
+      const file = e.target.files?.[0];
+      let uploadedUrl = null;
 
-      console.log('업로드 시도 중:', safeFileName);
-
-      // 2. Storage 업로드 시도
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('grass-image') 
-        .upload(safeFileName, file);
-
-      if (uploadError) {
-        console.error('업로드 실패 원인:', uploadError);
-        alert(`이미지 업로드 실패: ${uploadError.message}`);
-        // 업로드 실패 시 여기서 중단할지, 메모만 저장할지 결정 (일단 진행)
-      } else {
-        // 3. 업로드 성공 시에만 URL 가져오기
-        const { data } = supabase.storage
+      if (file) {
+        const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
+        const { error: uploadError } = await supabase.storage
           .from('grass-image')
-          .getPublicUrl(safeFileName);
-        
-        uploadedUrl = data.publicUrl;
-        console.log('업로드 성공! URL:', uploadedUrl);
-      }
-    }
+          .upload(fileName, file);
 
-    // 4. DB 저장 실행
+        if (!uploadError) {
+          const { data } = supabase.storage.from('grass-image').getPublicUrl(fileName);
+          uploadedUrl = data.publicUrl;
+        }
+      }
+      await finalSave(uploadedUrl);
+    };
+
+    // prompt 창이 완전히 닫히도록 시간을 넉넉히(500ms) 줌
+    setTimeout(() => {
+      fileInput.click();
+    }, 500);
+
+  } else {
+    // [이미지 없이 글만 저장하는 경로]
+    await finalSave(null);
+  }
+
+  // 최종 저장 함수
+  async function finalSave(imageUrl: string | null) {
     const { error: dbError } = await supabase.from('grass_records').insert([
       { 
         category, 
         date: format(new Date(), 'yyyy-MM-dd'), 
         count: 1, 
-        note: note.trim() || "기록 없음", 
-        image_url: uploadedUrl // 여기서 null이면 DB에도 NULL이 들어감
+        note: note.trim(), 
+        image_url: imageUrl 
       }
     ]);
-
-    if (!dbError) {
-      fetchRecords();
-    } else {
-      console.error('DB 저장 실패:', dbError.message);
-    }
-  };
-
-  setTimeout(() => {
-    fileInput.click();
-  }, 300);
+    if (!dbError) fetchRecords();
+  }
 };
-
   const StreakCard = ({ label, stats, colorClass }) => (
     <div className={`flex-1 min-w-[120px] p-4 bg-white rounded-2xl shadow-sm border-b-4 ${colorClass} border-x border-t border-gray-100 transition-transform active:scale-95`}>
       <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{label}</div>
