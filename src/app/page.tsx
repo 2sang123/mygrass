@@ -207,7 +207,36 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<GrassData | null>(null);
   const [allStreaks, setAllStreaks] = useState({ total: {current:0, max:0}, p: {current:0, max:0}, a: {current:0, max:0}, c: {current:0, max:0} });
+  const [todos, setTodos] = useState([]);
+  const [newTodo, setNewTodo] = useState("");
 
+  // 할 일 추가
+  const addTodo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTodo.trim()) return;
+    const { error } = await supabase.from('todos').insert([{ content: newTodo }]);
+    if (!error) {
+      setNewTodo("");
+      fetchTodos();
+    }
+  };
+
+  // 할 일 체크 토글
+  const toggleTodo = async (id: string, currentState: boolean) => {
+    await supabase.from('todos').update({ is_completed: !currentState }).eq('id', id);
+    fetchTodos();
+  };
+
+  // 할 일 삭제
+  const deleteTodo = async (id: string) => {
+    await supabase.from('todos').delete().eq('id', id);
+    fetchTodos();
+  };
+
+  useEffect(() => {
+    fetchRecords();
+    fetchTodos(); // 초기 로드 시 할 일도 가져옴
+  }, []);
   const fetchRecords = async () => {
     setIsLoading(true);
     const { data, error } = await supabase.from('grass_records').select('*').order('created_at', { ascending: true });
@@ -333,7 +362,48 @@ export default function Home() {
             <StreakCard label="🚀 Career" stats={allStreaks.c} colorClass="border-green-500" />
           </div>
         </header>
+        <section className="mb-12 bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+          <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            ✅ Today's Focus
+          </h2>
+          
+          <form onSubmit={addTodo} className="flex gap-2 mb-6">
+            <input 
+              type="text" 
+              value={newTodo}
+              onChange={(e) => setNewTodo(e.target.value)}
+              placeholder="오늘의 목표를 입력하세요..."
+              className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 transition-all"
+            />
+            <button type="submit" className="bg-gray-900 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-blue-600 transition-all active:scale-95">
+              추가
+            </button>
+          </form>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {todos.map((todo) => (
+              <div key={todo.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl group transition-all hover:bg-white hover:shadow-md border border-transparent hover:border-gray-100">
+                <div className="flex items-center gap-3">
+                  <input 
+                    type="checkbox" 
+                    checked={todo.is_completed}
+                    onChange={() => toggleTodo(todo.id, todo.is_completed)}
+                    className="w-5 h-5 rounded-md border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                  />
+                  <span className={`text-sm font-medium ${todo.is_completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                    {todo.content}
+                  </span>
+                </div>
+                <button 
+                  onClick={() => deleteTodo(todo.id)}
+                  className="text-gray-300 hover:text-red-500 transition-colors p-1"
+                >
+                  <span className="text-xl">×</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
         <GrassSection title="Programming" icon="💻" data={records.p} onAdd={() => addGrass('p')} onSelect={setSelectedDate} colorClass="grass-blue" isLoading={isLoading} />
         <GrassSection title="Art & Design" icon="🎨" data={records.a} onAdd={() => addGrass('a')} onSelect={setSelectedDate} colorClass="grass-orange" isLoading={isLoading} />
         <GrassSection title="Career Path" icon="🚀" data={records.c} onAdd={() => addGrass('c')} onSelect={setSelectedDate} colorClass="grass-green" isLoading={isLoading} />
