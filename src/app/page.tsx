@@ -205,29 +205,93 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
 export default function Home() {
   const [records, setRecords] = useState({ p: [], a: [], c: [] });
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<GrassData | null>(null);
+  const [selectedDate, setSelectedDate] = useState(null);
   const [allStreaks, setAllStreaks] = useState({ total: {current:0, max:0}, p: {current:0, max:0}, a: {current:0, max:0}, c: {current:0, max:0} });
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState("");
 
-  // 할 일 추가
+  // 1. 할 일 목록 불러오기 (이 부분이 누락되어 에러가 났을 겁니다)
+  const fetchTodos = async () => {
+    const { data, error } = await supabase
+      .from('todos')
+      .select('*')
+      .order('created_at', { ascending: true });
+    
+    if (data) {
+      setTodos([...data]); // 새로운 참조로 상태 업데이트
+    }
+  };
+
+  // 2. 잔디 기록 불러오기
+  const fetchRecords = async () => {
+    setIsLoading(true);
+    const { data, error } = await supabase.from('grass_records').select('*').order('created_at', { ascending: true });
+    
+    if (data) {
+      const newRecords = { p: [], a: [], c: [] };
+      const dates = { p: [], a: [], c: [], total: [] };
+
+      data.forEach(item => {
+        dates.total.push(item.date);
+        const target = newRecords[item.category];
+        dates[item.category].push(item.date);
+
+        const existing = target.find(d => d.date === item.date);
+        if (existing) {
+          existing.count += 1;
+          existing.note += `\n• ${item.note}`;
+          if (!existing.image_url && item.image_url) {
+            existing.image_url = item.image_url;
+          }
+        } else {
+          target.push({ 
+            date: item.date, 
+            count: 1, 
+            note: `• ${item.note}`,
+            image_url: item.image_url 
+          });
+        }
+      });
+
+      setRecords(newRecords);
+      setAllStreaks({
+        total: calculateStreak(dates.total),
+        p: calculateStreak(dates.p),
+        a: calculateStreak(dates.a),
+        c: calculateStreak(dates.c)
+      });
+    }
+    setIsLoading(false);
+  };
+
+  // 3. 초기 실행 (중복된 useEffect를 하나로 합침)
+  useEffect(() => {
+    fetchRecords();
+    fetchTodos();
+  }, []);
+
+  // 4. 할 일 추가 로직
   const addTodo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTodo.trim()) return;
-    const { error } = await supabase.from('todos').insert([{ content: newTodo }]);
+
+    const { error } = await supabase
+      .from('todos')
+      .insert([{ content: newTodo.trim() }]);
+
     if (!error) {
       setNewTodo("");
       fetchTodos();
     }
   };
 
-  // 할 일 체크 토글
+  // 5. 할 일 체크 토글
   const toggleTodo = async (id: string, currentState: boolean) => {
     await supabase.from('todos').update({ is_completed: !currentState }).eq('id', id);
     fetchTodos();
   };
 
-  // 할 일 삭제
+  // 6. 할 일 삭제
   const deleteTodo = async (id: string) => {
     await supabase.from('todos').delete().eq('id', id);
     fetchTodos();
