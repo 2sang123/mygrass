@@ -210,19 +210,16 @@ export default function Home() {
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState("");
 
-  // 1. 할 일 목록 불러오기 (이 부분이 누락되어 에러가 났을 겁니다)
+  // 1. 할 일 목록 불러오기
   const fetchTodos = async () => {
     const { data, error } = await supabase
       .from('todos')
       .select('*')
       .order('created_at', { ascending: true });
-    
-    if (data) {
-      setTodos([...data]); // 새로운 참조로 상태 업데이트
-    }
+    if (data) setTodos([...data]);
   };
 
-  // 2. 잔디 기록 불러오기
+  // 2. 잔디 기록 불러오기 (하나만 남깁니다)
   const fetchRecords = async () => {
     setIsLoading(true);
     const { data, error } = await supabase.from('grass_records').select('*').order('created_at', { ascending: true });
@@ -264,7 +261,7 @@ export default function Home() {
     setIsLoading(false);
   };
 
-  // 3. 초기 실행 (중복된 useEffect를 하나로 합침)
+  // 3. 초기 실행 (딱 한 번만 호출하도록 정리)
   useEffect(() => {
     fetchRecords();
     fetchTodos();
@@ -274,11 +271,7 @@ export default function Home() {
   const addTodo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTodo.trim()) return;
-
-    const { error } = await supabase
-      .from('todos')
-      .insert([{ content: newTodo.trim() }]);
-
+    const { error } = await supabase.from('todos').insert([{ content: newTodo.trim() }]);
     if (!error) {
       setNewTodo("");
       fetchTodos();
@@ -297,112 +290,54 @@ export default function Home() {
     fetchTodos();
   };
 
-  useEffect(() => {
-    fetchRecords();
-    fetchTodos(); // 초기 로드 시 할 일도 가져옴
-  }, []);
-  const fetchRecords = async () => {
-    setIsLoading(true);
-    const { data, error } = await supabase.from('grass_records').select('*').order('created_at', { ascending: true });
-    
-    if (data) {
-      const newRecords = { p: [], a: [], c: [] };
-      const dates = { p: [], a: [], c: [], total: [] };
-
-      data.forEach(item => {
-      dates.total.push(item.date);
-      const target = newRecords[item.category];
-      dates[item.category].push(item.date);
-
-      const existing = target.find(d => d.date === item.date);
-      if (existing) {
-        existing.count += 1;
-        existing.note += `\n• ${item.note}`;
-        
-        // [중요] 기존에 이미지가 없었더라도, 새로 발견된 데이터에 이미지가 있다면 추가
-        if (!existing.image_url && item.image_url) {
-          existing.image_url = item.image_url;
-        }
-      } else {
-        // 첫 기록 생성 시 image_url도 함께 저장
-        target.push({ 
-          date: item.date, 
-          count: 1, 
-          note: `• ${item.note}`,
-          image_url: item.image_url // 이 부분이 누락되었을 가능성이 큽니다.
-        });
-      }
-    });
-
-      setRecords(newRecords);
-      setAllStreaks({
-        total: calculateStreak(dates.total),
-        p: calculateStreak(dates.p),
-        a: calculateStreak(dates.a),
-        c: calculateStreak(dates.c)
-      });
-    }
-    setIsLoading(false);
-  };
-
-  useEffect(() => { fetchRecords(); }, []);
-
+  // 7. 잔디 추가 로직 (addGrass)
   const addGrass = async (category: 'p' | 'a' | 'c') => {
-  // 1. 메모 먼저 받기
-  const note = prompt("오늘 어떤 일을 하셨나요? (이미지를 안 올리려면 '취소'를 누르세요)");
-  if (note === null) return;
+    const note = prompt("오늘 어떤 일을 하셨나요? (이미지를 안 올리려면 '취소'를 누르세요)");
+    if (note === null) return;
 
-  // 2. 이미지 업로드 여부 물어보기
-  const wantImage = confirm("이미지도 함께 업로드하시겠습니까?");
+    const wantImage = confirm("이미지도 함께 업로드하시겠습니까?");
 
-  if (wantImage) {
-    // [이미지 업로드 경로]
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
+    if (wantImage) {
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/*';
 
-    fileInput.onchange = async (e: any) => {
-      const file = e.target.files?.[0];
-      let uploadedUrl = null;
+      fileInput.onchange = async (e: any) => {
+        const file = e.target.files?.[0];
+        let uploadedUrl = null;
 
-      if (file) {
-        const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
-        const { error: uploadError } = await supabase.storage
-          .from('grass-image')
-          .upload(fileName, file);
+        if (file) {
+          const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
+          const { error: uploadError } = await supabase.storage
+            .from('grass-image')
+            .upload(fileName, file);
 
-        if (!uploadError) {
-          const { data } = supabase.storage.from('grass-image').getPublicUrl(fileName);
-          uploadedUrl = data.publicUrl;
+          if (!uploadError) {
+            const { data } = supabase.storage.from('grass-image').getPublicUrl(fileName);
+            uploadedUrl = data.publicUrl;
+          }
         }
-      }
-      await finalSave(uploadedUrl);
-    };
+        await finalSave(uploadedUrl);
+      };
 
-    // prompt 창이 완전히 닫히도록 시간을 넉넉히(500ms) 줌
-    setTimeout(() => {
-      fileInput.click();
-    }, 500);
+      setTimeout(() => { fileInput.click(); }, 500);
+    } else {
+      await finalSave(null);
+    }
 
-  } else {
-    // [이미지 없이 글만 저장하는 경로]
-    await finalSave(null);
-  }
-
-  // 최종 저장 함수
-  async function finalSave(imageUrl: string | null) {
-    const { error: dbError } = await supabase.from('grass_records').insert([
-      { 
-        category, 
-        date: format(new Date(), 'yyyy-MM-dd'), 
-        count: 1, 
-        note: note.trim(), 
-        image_url: imageUrl 
-      }
-    ]);
-    if (!dbError) fetchRecords();
-  }
-};
+    async function finalSave(imageUrl: string | null) {
+      const { error: dbError } = await supabase.from('grass_records').insert([
+        { 
+          category, 
+          date: format(new Date(), 'yyyy-MM-dd'), 
+          count: 1, 
+          note: note.trim(), 
+          image_url: imageUrl 
+        }
+      ]);
+      if (!dbError) fetchRecords();
+    }
+  };
   const StreakCard = ({ label, stats, colorClass }) => (
     <div className={`flex-1 min-w-[120px] p-4 bg-white rounded-2xl shadow-sm border-b-4 ${colorClass} border-x border-t border-gray-100 transition-transform active:scale-95`}>
       <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{label}</div>
