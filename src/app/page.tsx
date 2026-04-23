@@ -39,8 +39,20 @@ const calculateStreak = (dates: string[]) => {
 };
 
 const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoading }: any) => {
-  const startDate = startOfYear(new Date());
-  const endDate = endOfYear(new Date());
+  const [isInputOpen, setIsInputOpen] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputValue.trim()) return;
+    
+    setIsUploading(true);
+    await onAdd(inputValue.trim()); // 기존의 addGrass 함수를 호출
+    setInputValue("");
+    setIsInputOpen(false);
+    setIsUploading(false);
+  };
   
   return (
     <div className="mb-12">
@@ -49,13 +61,42 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
           <span>{icon}</span> {title}
         </h2>
         <button 
-          onClick={onAdd}
-          className="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all active:scale-90"
+          onClick={() => setIsInputOpen(!isInputOpen)}
+          className={`w-8 h-8 flex items-center justify-center rounded-lg shadow-sm transition-all active:scale-90 ${isInputOpen ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-400'}`}
         >
-          <span className="text-gray-400 font-bold">+</span>
+          <span className="font-bold">{isInputOpen ? '×' : '+'}</span>
         </button>
       </div>
-      
+      {isInputOpen && (
+        <form onSubmit={handleSubmit} className="mb-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="bg-white p-4 rounded-2xl border-2 border-blue-100 shadow-lg">
+            <textarea
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="오늘 어떤 성장을 하셨나요? 길게 작성하셔도 좋습니다."
+              className="w-full min-h-[100px] p-3 text-sm bg-gray-50 border-none rounded-xl focus:ring-0 resize-none mb-3"
+            />
+            <div className="flex justify-end gap-2">
+              <button 
+                type="button" 
+                onClick={() => setIsInputOpen(false)}
+                className="px-4 py-2 text-xs font-bold text-gray-400 hover:text-gray-600"
+              >
+                취소
+              </button>
+              <button 
+                type="submit"
+                disabled={isUploading}
+                className="px-6 py-2 bg-gray-900 text-white text-xs font-bold rounded-xl hover:bg-blue-600 disabled:bg-gray-300 transition-all"
+              >
+                {isUploading ? '저장 중...' : '기록하기 (이미지 선택)'}
+              </button>
+            </div>
+          </div>
+        </form>
+      )}
+
+
       {/* pt-12로 상단 여백 확보 */}
       <div className={`relative p-6 pt-12 pb-6 bg-white rounded-3xl shadow-sm border border-gray-100 ${colorClass}`}>
         {isLoading ? (
@@ -291,47 +332,41 @@ export default function Home() {
   };
 
   // 7. 잔디 추가 로직 (addGrass)
-  const addGrass = async (category: 'p' | 'a' | 'c') => {
-    const note = prompt("오늘 어떤 일을 하셨나요? (이미지를 안 올리려면 '취소'를 누르세요)");
-    if (note === null) return;
+  const addGrass = async (category: 'p' | 'a' | 'c', note: string) => {
 
     const wantImage = confirm("이미지도 함께 업로드하시겠습니까?");
 
     if (wantImage) {
-      const fileInput = document.createElement('input');
-      fileInput.type = 'file';
-      fileInput.accept = 'image/*';
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
 
-      fileInput.onchange = async (e: any) => {
-        const file = e.target.files?.[0];
-        let uploadedUrl = null;
+    fileInput.onchange = async (e: any) => {
+      const file = e.target.files?.[0];
+      let uploadedUrl = null;
 
-        if (file) {
-          const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
-          const { error: uploadError } = await supabase.storage
-            .from('grass-image')
-            .upload(fileName, file);
-
-          if (!uploadError) {
-            const { data } = supabase.storage.from('grass-image').getPublicUrl(fileName);
-            uploadedUrl = data.publicUrl;
-          }
+      if (file) {
+        const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
+        const { error: uploadError } = await supabase.storage.from('grass-image').upload(fileName, file);
+        if (!uploadError) {
+          const { data } = supabase.storage.from('grass-image').getPublicUrl(fileName);
+          uploadedUrl = data.publicUrl;
         }
-        await finalSave(uploadedUrl);
-      };
+      }
+      await finalSave(uploadedUrl);
+    };
+    fileInput.click();
+  } else {
+    await finalSave(null);
+  }
 
-      setTimeout(() => { fileInput.click(); }, 500);
-    } else {
-      await finalSave(null);
-    }
-
-    async function finalSave(imageUrl: string | null) {
+      async function finalSave(imageUrl: string | null) {
       const { error: dbError } = await supabase.from('grass_records').insert([
         { 
           category, 
           date: format(new Date(), 'yyyy-MM-dd'), 
           count: 1, 
-          note: note.trim(), 
+          note: note, // GrassSection에서 받은 note 사용
           image_url: imageUrl 
         }
       ]);
@@ -403,9 +438,9 @@ export default function Home() {
             ))}
           </div>
         </section>
-        <GrassSection title="Programming" icon="💻" data={records.p} onAdd={() => addGrass('p')} onSelect={setSelectedDate} colorClass="grass-blue" isLoading={isLoading} />
-        <GrassSection title="Art & Design" icon="🎨" data={records.a} onAdd={() => addGrass('a')} onSelect={setSelectedDate} colorClass="grass-orange" isLoading={isLoading} />
-        <GrassSection title="Career Path" icon="🚀" data={records.c} onAdd={() => addGrass('c')} onSelect={setSelectedDate} colorClass="grass-green" isLoading={isLoading} />
+        <GrassSection title="Programming" icon="💻" data={records.p} onAdd={() => addGrass('p',note)} onSelect={setSelectedDate} colorClass="grass-blue" isLoading={isLoading} />
+        <GrassSection title="Art & Design" icon="🎨" data={records.a} onAdd={() => addGrass('a', note)} onSelect={setSelectedDate} colorClass="grass-orange" isLoading={isLoading} />
+        <GrassSection title="Career Path" icon="🚀" data={records.c} onAdd={() => addGrass('c', note)} onSelect={setSelectedDate} colorClass="grass-green" isLoading={isLoading} />
       </div>
 
       {selectedDate && (
