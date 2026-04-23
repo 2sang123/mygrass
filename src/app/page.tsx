@@ -438,9 +438,9 @@ export default function Home() {
             ))}
           </div>
         </section>
-        <GrassSection title="Programming" icon="💻" data={records.p} onAdd={() => addGrass('p',note)} onSelect={setSelectedDate} colorClass="grass-blue" isLoading={isLoading} />
-        <GrassSection title="Art & Design" icon="🎨" data={records.a} onAdd={() => addGrass('a', note)} onSelect={setSelectedDate} colorClass="grass-orange" isLoading={isLoading} />
-        <GrassSection title="Career Path" icon="🚀" data={records.c} onAdd={() => addGrass('c', note)} onSelect={setSelectedDate} colorClass="grass-green" isLoading={isLoading} />
+        <GrassSection title="Programming" icon="💻" data={records.p} onAdd={(note) => addGrass('p',note)} onSelect={setSelectedDate} colorClass="grass-blue" isLoading={isLoading} />
+        <GrassSection title="Art & Design" icon="🎨" data={records.a} onAdd={(note) => addGrass('a', note)} onSelect={setSelectedDate} colorClass="grass-orange" isLoading={isLoading} />
+        <GrassSection title="Career Path" icon="🚀" data={records.c} onAdd={(note) => addGrass('c', note)} onSelect={setSelectedDate} colorClass="grass-green" isLoading={isLoading} />
       </div>
 
       {selectedDate && (
