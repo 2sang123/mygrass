@@ -43,6 +43,9 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
   const [inputValue, setInputValue] = useState("");
   const [isUploading, setIsUploading] = useState(false);
 
+  const startDate = startOfYear(new Date());
+  const endDate = endOfYear(new Date());
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
