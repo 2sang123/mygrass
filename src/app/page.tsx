@@ -247,9 +247,10 @@ const GrassSection = ({ title, data, onAdd, onSelect, colorClass, icon, isLoadin
 };
 
 export default function Home() {
-  const [records, setRecords] = useState({ p: [], a: [], c: [] });
+  const [records, setRecords] = useState({ p: [], a: [], c: [], w: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [workoutStreak, setWorkoutStreak] = useState({ current: 0, max: 0 });
   const [allStreaks, setAllStreaks] = useState({ total: {current:0, max:0}, p: {current:0, max:0}, a: {current:0, max:0}, c: {current:0, max:0} });
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState("");
@@ -269,11 +270,13 @@ export default function Home() {
     const { data, error } = await supabase.from('grass_records').select('*').order('created_at', { ascending: true });
     
     if (data) {
-      const newRecords = { p: [], a: [], c: [] };
-      const dates = { p: [], a: [], c: [], total: [] };
+      const newRecords = { p: [], a: [], c: [], w: [] };
+      const dates = { p: [], a: [], c: [], w: [], total: [] };
 
       data.forEach(item => {
+        if (item.category !== 'w') {
         dates.total.push(item.date);
+      }
         const target = newRecords[item.category];
         dates[item.category].push(item.date);
 
@@ -301,6 +304,7 @@ export default function Home() {
         a: calculateStreak(dates.a),
         c: calculateStreak(dates.c)
       });
+      setWorkoutStreak(calculateStreak(dates.w));
     }
     setIsLoading(false);
   };
@@ -445,7 +449,29 @@ export default function Home() {
         <GrassSection title="Art & Design" icon="🎨" data={records.a} onAdd={(note) => addGrass('a', note)} onSelect={setSelectedDate} colorClass="grass-orange" isLoading={isLoading} />
         <GrassSection title="Career Path" icon="🚀" data={records.c} onAdd={(note) => addGrass('c', note)} onSelect={setSelectedDate} colorClass="grass-green" isLoading={isLoading} />
       </div>
+      <div className="mt-12 pt-8 border-t border-gray-200">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-baseline gap-2">
+            <h2 className="text-xl font-black text-gray-900 tracking-tight uppercase">
+              🏋️‍♂️ Workout Routine
+            </h2>
+            {/* 운동 전용 독립 스트릭 표시 */}
+            <span className="text-sm font-bold text-red-500 bg-red-50 px-2.5 py-0.5 rounded-full font-sans">
+              🔥 {workoutStreak.current} days streak (Max: {workoutStreak.max}d)
+            </span>
+          </div>
+        </div>
 
+        <GrassSection 
+          title="Daily Exercise" 
+          icon="🏃‍♂️" 
+          data={records.w} 
+          onAdd={(note) => addGrass('w', note)} 
+          onSelect={setSelectedDate} 
+          colorClass="grass-red" // 운동용 새로운 색상 클래스
+          isLoading={isLoading} 
+        />
+        </div>
       {selectedDate && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setSelectedDate(null)}>
           <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
@@ -479,6 +505,9 @@ export default function Home() {
         .grass-blue .color-scale-1 { fill: #e0e7ff !important; } .grass-blue .color-scale-4 { fill: #3730a3 !important; } .grass-blue .color-box { background-color: #3730a3; }
         .grass-orange .color-scale-1 { fill: #ffedd5 !important; } .grass-orange .color-scale-4 { fill: #9a3412 !important; } .grass-orange .color-box { background-color: #9a3412; }
         .grass-green .color-scale-1 { fill: #dcfce7 !important; } .grass-green .color-scale-4 { fill: #166534 !important; } .grass-green .color-box { background-color: #166534; }
+        .grass-red .color-scale-1 { fill: #ffe4e6 !important; }
+          .grass-red .color-scale-2 { fill: #fecdd3 !important; }.grass-red .color-red-3 { fill: #f43f5e !important; } /* 기존 스케일 규칙에 맞춰 작성 */.grass-red .color-scale-3 { fill: #f43f5e !important; }
+            .grass-red .color-scale-4 { fill: #9f1239 !important; }.grass-red .color-box { background-color: #9f1239; }
       `}</style>
     </main>
   );
