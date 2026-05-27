@@ -448,7 +448,6 @@ export default function Home() {
         <GrassSection title="Programming" icon="💻" data={records.p} onAdd={(note) => addGrass('p',note)} onSelect={setSelectedDate} colorClass="grass-blue" isLoading={isLoading} />
         <GrassSection title="Art & Design" icon="🎨" data={records.a} onAdd={(note) => addGrass('a', note)} onSelect={setSelectedDate} colorClass="grass-orange" isLoading={isLoading} />
         <GrassSection title="Career Path" icon="🚀" data={records.c} onAdd={(note) => addGrass('c', note)} onSelect={setSelectedDate} colorClass="grass-green" isLoading={isLoading} />
-      </div>
       <div className="mt-12 pt-8 border-t border-gray-200">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-baseline gap-2">
@@ -472,6 +471,8 @@ export default function Home() {
           isLoading={isLoading} 
         />
         </div>
+      </div>
+      
       {selectedDate && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setSelectedDate(null)}>
           <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
