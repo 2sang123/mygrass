@@ -348,19 +348,27 @@ export default function Home() {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+    document.body.appendChild(fileInput);
 
     fileInput.onchange = async (e: any) => {
       const file = e.target.files?.[0];
       let uploadedUrl = null;
 
       if (file) {
-        const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
+        const fileExt = file.name.split('.').pop(); // 확장자만 빼오기 (예: png, jpg)
+        const fileName = `grass_${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
         const { error: uploadError } = await supabase.storage.from('grass-image').upload(fileName, file);
         if (!uploadError) {
           const { data } = supabase.storage.from('grass-image').getPublicUrl(fileName);
           uploadedUrl = data.publicUrl;
+        } else
+        {
+          alert(`이미지 업로드 실패! 😢 원인: ${uploadError.message}`);
+          console.error("Upload Error:", uploadError);
         }
       }
+      document.body.removeChild(fileInput); // 다 썼으면 지워줍니다.
       await finalSave(uploadedUrl);
     };
     fileInput.click();
