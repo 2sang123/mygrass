@@ -284,7 +284,7 @@ export default function Home() {
           if (existing) {
             existing.count += 1;
             existing.note += `\n• ${item.note}`;
-          if (!existing.image_url && item.image_url) {
+          if (item.image_url) {
             existing.image_url = item.image_url;
           }
         } else {
