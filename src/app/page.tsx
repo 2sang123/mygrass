@@ -278,12 +278,12 @@ export default function Home() {
         dates.total.push(item.date);
       }
         const target = newRecords[item.category];
-        dates[item.category].push(item.date);
-
-        const existing = target.find(d => d.date === item.date);
-        if (existing) {
-          existing.count += 1;
-          existing.note += `\n• ${item.note}`;
+        if(target) {
+          dates[item.category].push(item.date);
+          const existing = target.find(d => d.date === item.date);
+          if (existing) {
+            existing.count += 1;
+            existing.note += `\n• ${item.note}`;
           if (!existing.image_url && item.image_url) {
             existing.image_url = item.image_url;
           }
@@ -293,7 +293,8 @@ export default function Home() {
             count: 1, 
             note: `• ${item.note}`,
             image_url: item.image_url 
-          });
+            });
+          }
         }
       });
 
